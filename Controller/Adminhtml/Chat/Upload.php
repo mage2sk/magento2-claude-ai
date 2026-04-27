@@ -120,21 +120,71 @@ HTA;
             $original = basename((string) $files['name']);
             $size     = (int) $files['size'];
             $tmp      = (string) $files['tmp_name'];
-            $mime     = mime_content_type($tmp) ?: '';
+            // mime_content_type can return false / weird values inside docker.
+            // getimagesize() is the authoritative check for images.
+            $mime     = (string) (function_exists('mime_content_type') ? @mime_content_type($tmp) : '');
             $ext      = strtolower(pathinfo($original, PATHINFO_EXTENSION));
+            $errorCode = (int) ($files['error'] ?? UPLOAD_ERR_OK);
+
+            // Surface PHP upload-error codes plainly — most "file type not
+            // supported" reports actually trace back to upload_max_filesize
+            // or post_max_size truncating the file before validation.
+            if ($errorCode !== UPLOAD_ERR_OK) {
+                $hint = match ($errorCode) {
+                    UPLOAD_ERR_INI_SIZE   => 'larger than upload_max_filesize',
+                    UPLOAD_ERR_FORM_SIZE  => 'larger than the form MAX_FILE_SIZE',
+                    UPLOAD_ERR_PARTIAL    => 'upload was interrupted',
+                    UPLOAD_ERR_NO_FILE    => 'no file present',
+                    UPLOAD_ERR_NO_TMP_DIR => 'server has no tmp dir',
+                    UPLOAD_ERR_CANT_WRITE => 'server could not write the upload',
+                    UPLOAD_ERR_EXTENSION  => 'a PHP extension blocked it',
+                    default               => 'unknown error code ' . $errorCode,
+                };
+                return $result->setData(['error' => 'Upload failed: ' . $hint . '.']);
+            }
 
             if ($size > self::MAX_FILE_SIZE) {
-                return $result->setData(['error' => 'That file is too big. Maximum 10 MB.']);
+                return $result->setData(['error' => 'That file is too big. Maximum 20 MB.']);
             }
-            if (!in_array($ext, self::ALLOWED_EXT, true)) {
-                return $result->setData(['error' => 'That file type isn\'t supported. Allowed: images, PDF, Word, Excel, CSV, text.']);
-            }
-            if (!in_array($mime, self::ALLOWED_MIME, true)) {
-                return $result->setData(['error' => 'The file content doesn\'t match its extension.']);
-            }
-            if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
-                if (@getimagesize($tmp) === false) {
-                    return $result->setData(['error' => 'That image file looks corrupted.']);
+
+            // ---- Image fast-path: trust getimagesize(), not the filename ----
+            // This works even when the file has no extension or the browser
+            // sends application/octet-stream for the MIME (which is what
+            // tripped the previous version on certain PNGs).
+            $imgInfo = @getimagesize($tmp);
+            $isImageByContent = is_array($imgInfo) && isset($imgInfo[2]);
+            $imageExtMap = [
+                IMAGETYPE_JPEG => 'jpg',
+                IMAGETYPE_PNG  => 'png',
+                IMAGETYPE_GIF  => 'gif',
+                IMAGETYPE_WEBP => 'webp',
+            ];
+            if ($isImageByContent && isset($imageExtMap[$imgInfo[2]])) {
+                // Authoritative: this IS an image. Replace any sketchy
+                // ext/mime values with the ones derived from real bytes.
+                $ext  = $imageExtMap[$imgInfo[2]];
+                $mime = (string) image_type_to_mime_type($imgInfo[2]);
+            } else {
+                // Non-image: fall back to ext + mime allow-list.
+                if ($ext === '' || !in_array($ext, self::ALLOWED_EXT, true)) {
+                    $detected = $ext === '' ? '(no extension)' : '.' . $ext;
+                    return $result->setData([
+                        'error' => sprintf(
+                            'That file type isn\'t supported (detected %s, MIME %s, %d bytes). Allowed: images, PDF, Word, Excel, CSV, text, archives.',
+                            $detected,
+                            $mime !== '' ? $mime : 'unknown',
+                            $size
+                        ),
+                    ]);
+                }
+                if ($mime !== '' && !in_array($mime, self::ALLOWED_MIME, true)) {
+                    return $result->setData([
+                        'error' => sprintf(
+                            'The file content (MIME %s) doesn\'t match its extension (.%s).',
+                            $mime,
+                            $ext
+                        ),
+                    ]);
                 }
             }
 
