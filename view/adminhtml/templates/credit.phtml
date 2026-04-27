@@ -4,6 +4,50 @@
  * @var \Magento\Framework\Escaper $escaper
  */
 ?>
+<style>
+/* Self-contained — inlined so the footer renders identically on the
+   Claude AI admin pages (where dashboard.css is loaded) AND on the
+   system-config page (where it is not). */
+.claudeai-credit { margin: 22px 0 6px; padding: 0 4px; display: flex; justify-content: center; }
+.claudeai-credit-card {
+    width: 100%; max-width: 720px;
+    background: linear-gradient(135deg, #ffffff 0%, #fffaf6 100%);
+    border: 1px solid #efe2d7; border-radius: 8px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 3px rgba(20,20,20,.04);
+    text-align: center;
+    box-sizing: border-box;
+}
+.claudeai-credit-line {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; flex-wrap: wrap;
+    font-size: 13px; color: #444;
+    margin-bottom: 9px;
+}
+.claudeai-credit-heart { display: inline-flex; align-items: center; justify-content: center; color: #e02b27; line-height: 0; animation: claudeaiHeart 1.6s ease-in-out infinite; }
+.claudeai-credit-heart svg { width: 14px; height: 14px; display: block; fill: currentColor !important; stroke: none !important; }
+@keyframes claudeaiHeart { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+.claudeai-credit-name { color: #eb5202 !important; text-decoration: none !important; font-weight: 700; transition: color .15s ease; }
+.claudeai-credit-name:hover { color: #c4410f !important; text-decoration: underline !important; }
+.claudeai-credit-sep { color: #ccc; }
+.claudeai-credit-company { color: #555; font-weight: 600; }
+.claudeai-credit-links { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.claudeai-credit-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 11px; background: #fff;
+    border: 1px solid #e3e3e3; border-radius: 999px;
+    color: #555 !important; text-decoration: none !important;
+    font-size: 12px; font-weight: 500;
+    transition: all .15s ease; box-sizing: border-box; line-height: 1.2;
+}
+.claudeai-credit-link svg {
+    width: 13px; height: 13px; display: block; flex-shrink: 0;
+    fill: none !important; stroke: currentColor !important;
+}
+.claudeai-credit-link--upwork svg { fill: currentColor !important; stroke: none !important; }
+.claudeai-credit-link:hover { color: #eb5202 !important; border-color: #eb5202; background: #fff8f3; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(235,82,2,.12); }
+.claudeai-credit-link--upwork:hover { color: #14a800 !important; border-color: #14a800; background: #f4fbf2; box-shadow: 0 2px 6px rgba(20,168,0,.14); }
+</style>
 <div class="claudeai-credit">
     <div class="claudeai-credit-card">
         <div class="claudeai-credit-line">

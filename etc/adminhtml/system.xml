@@ -2,14 +2,13 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <tab id="panth_extensions" translate="label" sortOrder="500">
-            <label>Panth Extensions</label>
-        </tab>
-
+        <!-- Tab "panth" is owned by Panth_Core; we just reference it here so
+             the Claude AI section sits under the same "🚀 Panth Extensions"
+             group instead of creating a duplicate tab in the sidebar. -->
         <section id="panth_claudeai" translate="label" type="text" sortOrder="10"
                  showInDefault="1" showInWebsite="0" showInStore="0">
             <label>Claude AI — Magento Automation</label>
-            <tab>panth_extensions</tab>
+            <tab>panth</tab>
             <resource>Panth_ClaudeAi::config_section</resource>
 
             <!-- API CREDENTIALS -->
@@ -201,6 +200,17 @@
                 <field id="file_logger" translate="label" type="select" sortOrder="40" showInDefault="1">
                     <label>Write to var/log/panth_claudeai.log</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <!-- Credit footer (rendered as a full-width row, no label / scope) -->
+            <group id="credit" translate="label" type="text" sortOrder="999"
+                   showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Credits</label>
+                <field id="credit_footer" translate="label" type="label" sortOrder="10"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label></label>
+                    <frontend_model>Panth\ClaudeAi\Block\Adminhtml\System\Config\CreditFooter</frontend_model>
                 </field>
             </group>
         </section>
