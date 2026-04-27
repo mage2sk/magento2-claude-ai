@@ -108,7 +108,14 @@ class Send extends Action implements HttpPostActionInterface, CsrfAwareActionInt
             }
 
             $history = is_array($body['history'] ?? null) ? $body['history'] : [];
-            $conversationId = (string) ($body['conversation_id'] ?? bin2hex(random_bytes(8)));
+            // ?? only catches null — JS sends '' on the first turn before it
+            // has an ID, which would store every message under an empty
+            // conversation_id and make the transcript view unreachable.
+            // Treat empty/whitespace as missing too.
+            $conversationId = trim((string) ($body['conversation_id'] ?? ''));
+            if ($conversationId === '') {
+                $conversationId = bin2hex(random_bytes(8));
+            }
 
             // Build user content. If attachments are present, each carries
             // a `claude_block` shape from /chat/upload that we can pass
