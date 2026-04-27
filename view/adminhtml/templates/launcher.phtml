@@ -24,6 +24,7 @@
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 10px 24px rgba(235,82,2,.32), 0 2px 6px rgba(20,20,20,.16);
     transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, border-radius .2s;
+    padding: 0; box-sizing: border-box; line-height: 1;
 }
 .pclaude-launcher:hover {
     transform: translateY(-2px) scale(1.04);
@@ -129,6 +130,10 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: background .15s, transform .15s;
     text-decoration: none;
+    /* Magento admin's global button rules add padding that squishes the
+       SVG to 0×0 — force padding 0 + box-sizing so the 15×15 icon shows. */
+    padding: 0; box-sizing: border-box; line-height: 1;
+    flex-shrink: 0;
 }
 .pclaude-icon-btn:hover { background: rgba(255,255,255,.20); color: #fff; }
 .pclaude-icon-btn:active { transform: scale(.94); }
@@ -215,6 +220,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
     background: linear-gradient(135deg, #ff6b1a, #c4410f);
     box-shadow: 0 2px 5px rgba(235,82,2,.28);
     margin-top: 2px;
+    padding: 0; box-sizing: border-box; line-height: 1;
 }
 .pclaude-avatar svg {
     width: 14px; height: 14px; display: block;
@@ -325,6 +331,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
     display: flex; align-items: center; justify-content: center;
     color: var(--pclaude-muted); cursor: pointer; transition: color .15s, background .15s;
     flex-shrink: 0;
+    padding: 0; box-sizing: border-box; line-height: 1;
 }
 .pclaude-attach:hover { color: var(--pclaude-orange); background: rgba(235,82,2,.08); }
 .pclaude-input {
@@ -341,6 +348,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
     box-shadow: 0 3px 8px rgba(235,82,2,.28);
     transition: transform .15s, box-shadow .15s;
     flex-shrink: 0;
+    padding: 0; box-sizing: border-box; line-height: 1;
 }
 .pclaude-send:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(235,82,2,.4); }
 .pclaude-send:active { transform: translateY(0); }
@@ -355,6 +363,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
     cursor: pointer; display: none; align-items: center; justify-content: center;
     transition: background .15s;
     flex-shrink: 0;
+    padding: 0; box-sizing: border-box; line-height: 1;
 }
 .pclaude-stop.is-active { display: flex; }
 .pclaude-stop:hover { background: #fff5f5; }
