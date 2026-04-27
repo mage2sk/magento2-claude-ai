@@ -5,7 +5,7 @@
  */
 $recent = $block->getRecentConversations(40);
 ?>
-<div class="claudeai-page">
+<div class="claudeai-page claudeai-shell">
     <?php if (!$block->isConfigured()): ?>
         <div class="message message-warning">
             <span><strong><?= $escaper->escapeHtml(__('Heads up')) ?></strong> —
@@ -24,33 +24,18 @@ $recent = $block->getRecentConversations(40);
         </div>
     <?php endif; ?>
 
-    <!-- Premium banner header -->
-    <div class="claudeai-chat-banner">
-        <div class="claudeai-banner-mark">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 2.5l1.95 5.55L19.5 10l-5.55 1.95L12 17.5l-1.95-5.55L4.5 10l5.55-1.95L12 2.5z"/>
-                <path d="M18.5 14.5l.85 2.4 2.4.85-2.4.85-.85 2.4-.85-2.4-2.4-.85 2.4-.85.85-2.4z" opacity=".75"/>
-            </svg>
-        </div>
-        <div class="claudeai-banner-text">
-            <div class="claudeai-banner-title"><?= $escaper->escapeHtml(__('Hi! I\'m your Store Assistant.')) ?></div>
-            <div class="claudeai-banner-sub">
-                <span class="claudeai-banner-dot"></span>
-                <span><?= $escaper->escapeHtml(__('Online · ')) ?><?= $escaper->escapeHtml($block->getModel()) ?></span>
-                <?php if ($block->isDryRun()): ?>
-                    <span>· <?= $escaper->escapeHtml(__('Practice mode')) ?></span>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    <div class="claudeai-chat">
-        <aside class="claudeai-chat-side">
+    <div class="claudeai-chat" id="claudeai-chat">
+        <!-- Slim sidebar — only the chat list. Capabilities & suggestions
+             live in the empty state where they belong. -->
+        <aside class="claudeai-chat-side" id="claudeai-side">
             <div class="claudeai-side-head">
-                <h4><?= $escaper->escapeHtml(__('Recent chats')) ?></h4>
+                <h4><?= $escaper->escapeHtml(__('Chats')) ?></h4>
                 <button type="button" id="claudeai-new-chat" class="claudeai-newchat-btn"
                         title="<?= $escaper->escapeHtmlAttr(__('Start a new chat')) ?>">
-                    + <?= $escaper->escapeHtml(__('New')) ?>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    <span><?= $escaper->escapeHtml(__('New')) ?></span>
                 </button>
             </div>
             <ul class="claudeai-chat-history" id="claudeai-history">
@@ -64,32 +49,44 @@ $recent = $block->getRecentConversations(40);
                             <div class="claudeai-history-line"><?= $escaper->escapeHtml($c['preview'] !== '' ? $c['preview'] : '(file or empty)') ?></div>
                             <div class="claudeai-history-meta">
                                 <?= $escaper->escapeHtml(date('M j H:i', strtotime($c['last_at']))) ?>
-                                · <?= (int) $c['turns'] ?> <?= $escaper->escapeHtml(__('messages')) ?>
+                                · <?= (int) $c['turns'] ?>
                             </div>
                         </li>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </ul>
-
-            <h4><?= $escaper->escapeHtml(__('What I can help with')) ?></h4>
-            <ul class="claudeai-help-list">
-                <li><span class="claudeai-help-icon">✦</span> <?= $escaper->escapeHtml(__('Find products, customers, and orders')) ?></li>
-                <li><span class="claudeai-help-icon">✦</span> <?= $escaper->escapeHtml(__('Add or update products in bulk')) ?></li>
-                <li><span class="claudeai-help-icon">✦</span> <?= $escaper->escapeHtml(__('Change prices and stock')) ?></li>
-                <li><span class="claudeai-help-icon">✦</span> <?= $escaper->escapeHtml(__('Manage categories, pages, and blocks')) ?></li>
-                <li><span class="claudeai-help-icon">✦</span> <?= $escaper->escapeHtml(__('See sales and store insights')) ?></li>
-                <li><span class="claudeai-help-icon">✦</span> <?= $escaper->escapeHtml(__('Undo any change with one click')) ?></li>
-            </ul>
-
-            <h4><?= $escaper->escapeHtml(__('Try one of these')) ?></h4>
-            <ul class="claudeai-chat-suggest">
-                <?php foreach ($block->getSuggestions() as $s): ?>
-                    <li class="claudeai-chat-chip" data-suggestion="<?= $escaper->escapeHtmlAttr($s) ?>"><?= $escaper->escapeHtml($s) ?></li>
-                <?php endforeach; ?>
-            </ul>
         </aside>
 
+        <!-- Sidebar collapse toggle (always visible) -->
+        <button type="button" class="claudeai-side-toggle" id="claudeai-side-toggle"
+                title="<?= $escaper->escapeHtmlAttr(__('Hide / show chats')) ?>"
+                aria-label="<?= $escaper->escapeHtmlAttr(__('Toggle sidebar')) ?>">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </button>
+
         <main class="claudeai-chat-main">
+            <!-- Slim integrated header — model badge + status, no big banner -->
+            <div class="claudeai-main-head">
+                <div class="claudeai-main-mark">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 2.5l1.95 5.55L19.5 10l-5.55 1.95L12 17.5l-1.95-5.55L4.5 10l5.55-1.95L12 2.5z"/>
+                        <path d="M18.5 14.5l.85 2.4 2.4.85-2.4.85-.85 2.4-.85-2.4-2.4-.85 2.4-.85.85-2.4z" opacity=".75"/>
+                    </svg>
+                </div>
+                <div class="claudeai-main-head-text">
+                    <strong><?= $escaper->escapeHtml(__('Store Assistant')) ?></strong>
+                    <span>
+                        <span class="claudeai-banner-dot"></span>
+                        <?= $escaper->escapeHtml($block->getModel()) ?>
+                        <?php if ($block->isDryRun()): ?>
+                            · <?= $escaper->escapeHtml(__('Practice mode')) ?>
+                        <?php endif; ?>
+                    </span>
+                </div>
+            </div>
+
             <div class="claudeai-chat-feed" id="claudeai-feed">
                 <div class="claudeai-chat-empty">
                     <div class="claudeai-empty-mark">
@@ -99,7 +96,80 @@ $recent = $block->getRecentConversations(40);
                         </svg>
                     </div>
                     <h3><?= $escaper->escapeHtml(__('How can I help today?')) ?></h3>
-                    <p><?= $escaper->escapeHtml(__('Just type what you want in plain English. I will do the rest.')) ?></p>
+                    <p><?= $escaper->escapeHtml(__('Type what you want in plain English. I will do the rest.')) ?></p>
+
+                    <!-- 6 capability cards, icon-led. Click any to prefill. -->
+                    <div class="claudeai-cap-grid">
+                        <div class="claudeai-cap" data-suggestion="<?= $escaper->escapeHtmlAttr(__('Find all products with the word "shirt" in the name')) ?>">
+                            <div class="claudeai-cap-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+                                </svg>
+                            </div>
+                            <div class="claudeai-cap-text">
+                                <strong><?= $escaper->escapeHtml(__('Find anything')) ?></strong>
+                                <span><?= $escaper->escapeHtml(__('Products, customers, orders')) ?></span>
+                            </div>
+                        </div>
+                        <div class="claudeai-cap" data-suggestion="<?= $escaper->escapeHtmlAttr(__('Create a new product called "Test Product" priced at $19.99 with 50 in stock')) ?>">
+                            <div class="claudeai-cap-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 113 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                                </svg>
+                            </div>
+                            <div class="claudeai-cap-text">
+                                <strong><?= $escaper->escapeHtml(__('Add or edit products')) ?></strong>
+                                <span><?= $escaper->escapeHtml(__('One at a time or in bulk')) ?></span>
+                            </div>
+                        </div>
+                        <div class="claudeai-cap" data-suggestion="<?= $escaper->escapeHtmlAttr(__('Make every t-shirt cost $24.99')) ?>">
+                            <div class="claudeai-cap-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                                </svg>
+                            </div>
+                            <div class="claudeai-cap-text">
+                                <strong><?= $escaper->escapeHtml(__('Change prices &amp; stock')) ?></strong>
+                                <span><?= $escaper->escapeHtml(__('Across many items at once')) ?></span>
+                            </div>
+                        </div>
+                        <div class="claudeai-cap" data-suggestion="<?= $escaper->escapeHtmlAttr(__('List all CMS pages')) ?>">
+                            <div class="claudeai-cap-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                                </svg>
+                            </div>
+                            <div class="claudeai-cap-text">
+                                <strong><?= $escaper->escapeHtml(__('Edit pages &amp; categories')) ?></strong>
+                                <span><?= $escaper->escapeHtml(__('CMS pages, blocks, tree')) ?></span>
+                            </div>
+                        </div>
+                        <div class="claudeai-cap" data-suggestion="<?= $escaper->escapeHtmlAttr(__('What did I sell this month?')) ?>">
+                            <div class="claudeai-cap-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>
+                                </svg>
+                            </div>
+                            <div class="claudeai-cap-text">
+                                <strong><?= $escaper->escapeHtml(__('See sales insights')) ?></strong>
+                                <span><?= $escaper->escapeHtml(__('Counts, totals, trends')) ?></span>
+                            </div>
+                        </div>
+                        <div class="claudeai-cap" data-suggestion="<?= $escaper->escapeHtmlAttr(__('Show me the latest checkpoints I can undo')) ?>">
+                            <div class="claudeai-cap-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+                                </svg>
+                            </div>
+                            <div class="claudeai-cap-text">
+                                <strong><?= $escaper->escapeHtml(__('Undo any change')) ?></strong>
+                                <span><?= $escaper->escapeHtml(__('Every write makes a save-point')) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Suggestion pills — try one of these -->
                     <div class="claudeai-empty-suggest">
                         <button type="button" class="claudeai-chat-chip" data-suggestion="<?= $escaper->escapeHtmlAttr(__('Show me the 10 most recent orders')) ?>">
                             <?= $escaper->escapeHtml(__('Show my 10 newest orders')) ?>
@@ -194,6 +264,9 @@ $recent = $block->getRecentConversations(40);
     };
     function friendlyTool(name) { return FRIENDLY_TOOL[name] || name.replace(/_/g, ' '); }
 
+    const chat     = document.getElementById('claudeai-chat');
+    const side     = document.getElementById('claudeai-side');
+    const sideTog  = document.getElementById('claudeai-side-toggle');
     const feed     = document.getElementById('claudeai-feed');
     const input    = document.getElementById('claudeai-input');
     const sendBtn  = document.getElementById('claudeai-send');
@@ -202,9 +275,16 @@ $recent = $block->getRecentConversations(40);
     const fileIn   = document.getElementById('claudeai-file');
     const attBox   = document.getElementById('claudeai-attachments');
 
+    // Sidebar collapse — persisted across reloads.
+    const SIDE_KEY = 'panth_claudeai_side_collapsed';
+    if (localStorage.getItem(SIDE_KEY) === '1') chat.classList.add('is-collapsed');
+    sideTog?.addEventListener('click', () => {
+        chat.classList.toggle('is-collapsed');
+        localStorage.setItem(SIDE_KEY, chat.classList.contains('is-collapsed') ? '1' : '0');
+    });
+
     let conversation = [];
     let conversationId = '';
-    /** Pending attachments (each carries { name, mime, size, url, claude_block, preview_url? }) */
     let pendingAttachments = [];
 
     // Pre-fill from ?prompt= so the dashboard quick-actions can deep-link
@@ -219,24 +299,16 @@ $recent = $block->getRecentConversations(40);
         return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
-    // Smart auto-scroll — only follow the latest content if the user is
-    // already near the bottom. Don't yank them down if they scrolled up
-    // to read older messages mid-conversation.
     function nearBottom() {
         return (feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 80;
     }
     let _stickToBottom = true;
     feed.addEventListener('scroll', () => { _stickToBottom = nearBottom(); });
     function autoScroll(force) {
-        if (force || _stickToBottom) {
-            feed.scrollTop = feed.scrollHeight;
-        }
+        if (force || _stickToBottom) feed.scrollTop = feed.scrollHeight;
     }
     function clearEmpty() { const e = feed.querySelector('.claudeai-chat-empty'); if (e) e.remove(); }
 
-    // Walk back through preceding bubbles — if the most recent one is also
-    // an AI bubble, this new one is a continuation of the same turn and
-    // should hide its avatar (so multi-block replies don't stack glyphs).
     function isContinuation() {
         for (let n = feed.lastElementChild; n; n = n.previousElementSibling) {
             if (n.classList.contains('claudeai-tool-call')) continue;
@@ -326,15 +398,9 @@ $recent = $block->getRecentConversations(40);
                 return;
             }
             const att = {
-                name: data.name,
-                mime: data.mime,
-                size: data.size,
-                url: data.url,
-                is_image: data.is_image,
-                is_pdf: data.is_pdf,
-                is_text: data.is_text,
-                claude_can_see: data.claude_can_see,
-                claude_block: data.claude_block,
+                name: data.name, mime: data.mime, size: data.size, url: data.url,
+                is_image: data.is_image, is_pdf: data.is_pdf, is_text: data.is_text,
+                claude_can_see: data.claude_can_see, claude_block: data.claude_block,
                 path_note: data.path_note,
             };
             if (data.is_image && data.claude_block && data.claude_block.source) {
@@ -361,9 +427,7 @@ $recent = $block->getRecentConversations(40);
 
     async function streamSend(message, sentAttachments) {
         const apiAttachments = sentAttachments.map(a => ({
-            claude_block: a.claude_block,
-            path_note:    a.path_note,
-            name:         a.name,
+            claude_block: a.claude_block, path_note: a.path_note, name: a.name,
         }));
         const t = thinking();
         setStatus(t, '<?= $escaper->escapeJs(__('Reading what you said…')) ?>');
@@ -375,12 +439,12 @@ $recent = $block->getRecentConversations(40);
 
         const resp = await fetch(STREAM_URL, {
             method: 'POST', credentials: 'include', signal: ctrl.signal,
-            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/event-stream' },
+            // Don't send Accept: text/event-stream — Magento's webapi
+            // RendererFactory rejects it when tools save through productRepository.
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             body: JSON.stringify({
-                message,
-                attachments: apiAttachments,
-                history: conversation,
-                conversation_id: conversationId,
+                message, attachments: apiAttachments,
+                history: conversation, conversation_id: conversationId,
                 form_key: FORM_KEY,
             }),
         });
@@ -456,8 +520,6 @@ $recent = $block->getRecentConversations(40);
         const lastBody = aiBubble.querySelector('.claudeai-bubble-body');
         if (lastBody) lastBody.insertAdjacentHTML('beforeend', '<div class="claudeai-meta">' + meta + '</div>');
     }
-    // Reset the send/stop button states whether the stream completed
-    // normally, errored, or was aborted.
     function resetSendUi() {
         activeAbort = null;
         sendBtn.style.display = '';
@@ -470,8 +532,6 @@ $recent = $block->getRecentConversations(40);
             return '<div class="claudeai-bubble-att-chip">📎 ' + esc(a.name) + '</div>';
         }).join('');
         bubble('user', esc(message) + attHtml);
-        // After the user sends, always pin to bottom — overrides any
-        // earlier upward scroll so the new exchange is in view.
         _stickToBottom = true;
         autoScroll(true);
         const sentAttachments = pendingAttachments.slice();
@@ -516,6 +576,7 @@ $recent = $block->getRecentConversations(40);
         if (f) uploadFile(f);
         e.target.value = '';
     });
+    // Capability cards send a starter prompt; suggestion chips do the same.
     document.querySelectorAll('.claudeai-chat-chip').forEach(chip => {
         chip.addEventListener('click', () => {
             input.value = chip.dataset.suggestion || '';
@@ -523,24 +584,25 @@ $recent = $block->getRecentConversations(40);
             input.dispatchEvent(new Event('input'));
         });
     });
+    document.querySelectorAll('.claudeai-cap[data-suggestion]').forEach(card => {
+        card.addEventListener('click', () => {
+            input.value = card.dataset.suggestion || '';
+            input.focus();
+            input.dispatchEvent(new Event('input'));
+        });
+    });
 
-    // Reset to a brand-new conversation (clears feed + history + cid).
     function newChat() {
         conversation = [];
         conversationId = '';
         pendingAttachments = [];
         renderAttachments();
-        feed.innerHTML = '<div class="claudeai-chat-empty">' +
-            '<div class="claudeai-empty-mark">' + AI_GLYPH + '</div>' +
-            '<h3><?= $escaper->escapeJs(__('How can I help today?')) ?></h3>' +
-            '<p><?= $escaper->escapeJs(__('Just type what you want in plain English. I will do the rest.')) ?></p>' +
-            '</div>';
-        document.querySelectorAll('.claudeai-history-item').forEach(li => li.classList.remove('is-active'));
-        input.focus();
+        // Reload to get a fresh empty state with all the cards intact;
+        // simpler than re-rendering the rich empty-state HTML in JS.
+        window.location.href = window.location.pathname;
     }
     document.getElementById('claudeai-new-chat')?.addEventListener('click', newChat);
 
-    // Render a single tool_use block as a friendly chip + collapsed details.
     function renderToolUseChip(name, input) {
         const inputJson = JSON.stringify(input || {}, null, 2);
         const details = '<details class="claudeai-tool-details"><summary>' +
@@ -550,8 +612,6 @@ $recent = $block->getRecentConversations(40);
         feed.insertAdjacentHTML('beforeend', '<div class="claudeai-tool-call">' + details + '</div>');
         autoScroll();
     }
-    // Render a tool_result block — pull the human summary if present, hide
-    // the raw JSON behind a click-to-expand.
     function renderToolResultChip(content) {
         let parsed = null;
         let raw = '';
@@ -580,7 +640,6 @@ $recent = $block->getRecentConversations(40);
     }
     function mb(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; }
 
-    // Replay one stored conversation into the feed in lightweight bubble form.
     function replay(messages) {
         feed.innerHTML = '';
         for (const msg of messages || []) {

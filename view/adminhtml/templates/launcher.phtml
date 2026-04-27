@@ -685,7 +685,13 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
         try {
             const resp = await fetch(STREAM_URL, {
                 method: 'POST', credentials: 'include', signal: ctrl.signal,
-                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/event-stream' },
+                // Don't send Accept: text/event-stream — Magento's webapi
+                // RendererFactory rejects it when the orchestrator's tools
+                // (e.g. manage_products) save through productRepository,
+                // because some Magento plugins read the live request's Accept
+                // header to pick a JSON/XML renderer. Default Accept is fine;
+                // SSE works because the SERVER's Content-Type is what matters.
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
                 body: JSON.stringify({
                     message, attachments: apiAttachments, history: conversation,
                     conversation_id: conversationId, form_key: FORM_KEY,

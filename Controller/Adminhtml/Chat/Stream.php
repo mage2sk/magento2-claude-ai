@@ -81,6 +81,13 @@ class Stream extends Action implements HttpPostActionInterface, CsrfAwareActionI
         @ini_set('zlib.output_compression', '0');
         @ini_set('output_buffering', 'off');
         @ini_set('implicit_flush', '1');
+        // Belt-and-braces: even if a stale browser caches the old
+        // "Accept: text/event-stream" header, normalize it back to a JSON-
+        // compatible value before tools call Magento repos. Magento's
+        // webapi RendererFactory throws InputException on event-stream when
+        // a write tool (e.g. manage_products) routes through a plugin that
+        // reads the live request's Accept header to pick its renderer.
+        $_SERVER['HTTP_ACCEPT'] = 'application/json, */*;q=0.1';
         // Make connection_aborted() reliably flip to true when the client
         // disconnects mid-stream (Stop button → AbortController cancels
         // the fetch). Without this, PHP only notices on the next echo and
