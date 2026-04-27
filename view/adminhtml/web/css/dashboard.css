@@ -181,178 +181,353 @@
 }
 .claudeai-form-hint { font-size: 12px; color: #777; margin-top: 3px; }
 
-/* Chat surface (admin) — keeps its own frame because the conversation UI
-   needs a fixed-height feed; everything else inherits Magento defaults. */
+/* ============================================================
+   Chat surface (admin) — premium Claude-friendly design.
+   Warm cream background, sparkle-accented AI avatars, refined
+   bubbles, pill-shaped composer with circular send button.
+   ============================================================ */
+.claudeai-chat-banner {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px; margin: 12px 0;
+    background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+    color: #fff; border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(20,20,20,.16);
+    position: relative; overflow: hidden;
+}
+.claudeai-chat-banner::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(235,82,2,.40) 0%, transparent 38%),
+      radial-gradient(circle at 88% 84%, rgba(235,82,2,.20) 0%, transparent 42%);
+    pointer-events: none;
+}
+.claudeai-banner-mark {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,.25);
+    position: relative; z-index: 1; flex-shrink: 0;
+}
+.claudeai-banner-mark svg {
+    width: 22px; height: 22px;
+    fill: #fff !important; stroke: none !important;
+}
+.claudeai-banner-text { position: relative; z-index: 1; }
+.claudeai-banner-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.claudeai-banner-sub {
+    font-size: 12px; color: #d4d4d4; margin-top: 3px;
+    display: flex; align-items: center; gap: 6px;
+}
+.claudeai-banner-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #2ecc71; box-shadow: 0 0 0 0 rgba(46,204,113,.6);
+    animation: claudeaiBannerDot 2s ease-out infinite;
+}
+@keyframes claudeaiBannerDot {
+    0%   { box-shadow: 0 0 0 0 rgba(46,204,113,.6); }
+    100% { box-shadow: 0 0 0 6px rgba(46,204,113,0); }
+}
+
+/* Two-column chat. Sidebar 260px, main fills the rest. */
 .claudeai-chat {
-    display: grid; grid-template-columns: 240px 1fr; gap: 12px;
-    margin-top: 12px;
+    display: grid; grid-template-columns: 260px 1fr; gap: 14px;
+    margin-top: 4px;
     /* Hard-bound the chat surface to the viewport. Without this, the feed
        (flex:1 + overflow-y:auto) has no height ceiling to overflow against
        and the PAGE scrolls instead, which makes every new message vanish
        below the fold. */
-    height: calc(100vh - 220px); min-height: 480px; max-height: calc(100vh - 220px);
+    height: calc(100vh - 290px); min-height: 480px; max-height: calc(100vh - 290px);
     overflow: hidden;
 }
 .claudeai-chat-side, .claudeai-chat-main {
-    background: #fff; border: 1px solid #e3e3e3; border-radius: 3px;
-    min-height: 0;        /* lets the grid item shrink to feed's overflow */
+    background: #fff; border: 1px solid #ece6df; border-radius: 12px;
+    min-height: 0;
+    box-shadow: 0 1px 3px rgba(20,20,20,.04);
 }
-.claudeai-chat-side { padding: 14px; overflow-y: auto; }
+.claudeai-chat-side { padding: 16px; overflow-y: auto; }
 .claudeai-side-head {
     display: flex; align-items: center; justify-content: space-between;
-    margin: 0 0 8px;
+    margin: 0 0 10px;
 }
 .claudeai-side-head h4 {
     font-size: 11px; font-weight: 700; text-transform: uppercase;
-    color: #303030; letter-spacing: .04em; margin: 0;
+    color: #303030; letter-spacing: .06em; margin: 0;
 }
 .claudeai-newchat-btn {
-    background: #eb5202; color: #fff; border: none;
-    padding: 4px 10px; font-size: 11px; font-weight: 600;
-    border-radius: 3px; cursor: pointer;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f); color: #fff; border: none;
+    padding: 5px 12px; font-size: 11px; font-weight: 600;
+    border-radius: 999px; cursor: pointer;
+    box-shadow: 0 2px 5px rgba(235,82,2,.25);
+    transition: transform .15s ease, box-shadow .15s ease;
 }
-.claudeai-newchat-btn:hover { background: #ba4002; }
+.claudeai-newchat-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(235,82,2,.32); }
 .claudeai-chat-history {
-    list-style: none; margin: 0 0 8px; padding: 0;
-    border-bottom: 1px solid #eee; padding-bottom: 8px;
+    list-style: none; margin: 0 0 10px; padding: 0;
+    border-bottom: 1px solid #f0ebe5; padding-bottom: 10px;
 }
 .claudeai-history-empty {
-    font-size: 11px; color: #999; padding: 8px 0; line-height: 1.4;
+    font-size: 11.5px; color: #999; padding: 8px 0; line-height: 1.5;
 }
 .claudeai-history-item {
-    padding: 6px 8px; margin-bottom: 4px;
-    cursor: pointer; border-radius: 3px;
+    padding: 8px 10px; margin-bottom: 4px;
+    cursor: pointer; border-radius: 8px;
     border: 1px solid transparent;
+    transition: background .15s, border-color .15s;
 }
-.claudeai-history-item:hover { background: #fffaf6; border-color: #fde2c4; }
+.claudeai-history-item:hover { background: #fffaf6; border-color: #f5dec5; }
 .claudeai-history-item.is-active {
-    background: #fff3e6; border-color: #eb5202;
+    background: #fff3e6; border-color: #f5b07c;
 }
 .claudeai-history-line {
-    font-size: 12px; color: #303030;
+    font-size: 12.5px; color: #1f1f1f; font-weight: 500;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .claudeai-history-meta {
-    font-size: 10px; color: #999; margin-top: 2px;
-    font-family: Menlo, monospace;
+    font-size: 10.5px; color: #999; margin-top: 3px;
 }
 .claudeai-status-line {
     display: inline-flex; align-items: center; gap: 8px;
-    color: #777; font-size: 12px;
+    color: #777; font-size: 12.5px;
 }
-.claudeai-status-line em {
-    font-style: normal;
+.claudeai-status-line em { font-style: normal; }
+
+/* Friendly "What I can help with" list — no scary tool names. */
+.claudeai-help-list { list-style: none; margin: 0; padding: 0; }
+.claudeai-help-list li {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 7px 0; font-size: 12.5px; line-height: 1.4; color: #2a2a2a;
+    border-bottom: 1px dashed #f0ebe5;
 }
-/* Tool chip with click-to-expand details — replaces the raw JSON dump. */
+.claudeai-help-list li:last-child { border-bottom: none; }
+.claudeai-help-list .claudeai-help-icon {
+    color: #eb5202; font-size: 13px; flex-shrink: 0; margin-top: 1px;
+}
+/* Tool chip with click-to-expand details — replaces the raw JSON dump.
+   Outer .claudeai-tool-call already supplies the white card + left accent;
+   the summary just needs to be tappable, no extra border. */
 .claudeai-tool-details { margin: 0; }
 .claudeai-tool-details > summary {
     cursor: pointer; list-style: none;
-    display: flex; align-items: center; gap: 6px;
-    padding: 6px 10px; font-size: 12px; line-height: 1.4;
-    background: #fffaf6; border-left: 3px solid #5e7ce2;
-    border-radius: 0 3px 3px 0;
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 12px; font-size: 12.5px; line-height: 1.4;
+    background: transparent; color: #2a2a2a;
 }
 .claudeai-tool-details > summary::-webkit-details-marker { display: none; }
-.claudeai-tool-call--err .claudeai-tool-details > summary { border-left-color: #d93b3b; background: #fff5f5; }
-.claudeai-tool-details > summary code {
-    color: #5e7ce2; font-weight: 600; font-size: 11px;
-    font-family: Menlo, monospace;
-}
 .claudeai-tool-args {
     color: #888; font-size: 11px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     max-width: 380px;
 }
-.claudeai-tool-result-icon { font-size: 12px; }
-.claudeai-tool-result-summary { color: #303030; font-weight: 500; }
-.claudeai-tool-details[open] > summary { border-bottom: 1px solid #eee; }
+.claudeai-tool-result-icon { font-size: 13px; color: #5e7ce2; }
+.claudeai-tool-call--err .claudeai-tool-result-icon { color: #d93b3b; }
+.claudeai-tool-result-summary { color: #1f1f1f; font-weight: 500; }
+.claudeai-tool-details[open] > summary { border-bottom: 1px solid #f0ebe5; }
 .claudeai-tool-details > pre {
-    margin: 0; padding: 8px 12px;
+    margin: 0; padding: 10px 14px;
     background: #fafafa; border-left: 3px solid #5e7ce2;
     font-size: 11px; line-height: 1.4;
     max-height: 320px; overflow: auto;
 }
 .claudeai-tool-call--err .claudeai-tool-details > pre { border-left-color: #d93b3b; background: #fff8f8; }
-.claudeai-chat-main { display: flex; flex-direction: column; padding: 0; }
+.claudeai-chat-main { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
 .claudeai-chat-side h4 {
     font-size: 11px; font-weight: 700; text-transform: uppercase;
-    color: #303030; margin: 12px 0 6px; letter-spacing: .04em;
+    color: #303030; margin: 14px 0 8px; letter-spacing: .06em;
 }
-.claudeai-chat-tools { list-style: none; margin: 0; padding: 0; font-size: 12px; }
-.claudeai-chat-tools li {
-    padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+.claudeai-chat-suggest {
+    display: flex; flex-direction: column; gap: 6px;
+    margin: 0; padding: 0; list-style: none;
 }
-.claudeai-chat-tools li code {
-    color: #eb5202; font-size: 11px; font-family: Menlo, monospace;
-    display: block; margin-bottom: 2px;
-}
-.claudeai-chat-tools li small { color: #777; font-size: 11px; line-height: 1.4; }
-.claudeai-chat-suggest { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .claudeai-chat-chip {
-    background: #fffaf6; border: 1px solid #e3e3e3; border-radius: 3px;
-    padding: 6px 10px; font-size: 12px; cursor: pointer;
+    background: #fff; border: 1px solid #ece6df; border-radius: 8px;
+    padding: 8px 11px; font-size: 12.5px; line-height: 1.4;
+    cursor: pointer; color: #2a2a2a;
+    transition: background .15s, border-color .15s, transform .15s;
+    display: flex; align-items: center; gap: 8px;
 }
-.claudeai-chat-chip:hover { background: #fff3e6; border-color: #eb5202; }
+.claudeai-chat-chip::before {
+    content: "→"; color: #eb5202; font-weight: 700;
+    transition: transform .15s ease;
+}
+.claudeai-chat-chip:hover {
+    background: #fff8f3; border-color: #eb5202;
+    transform: translateY(-1px);
+}
+.claudeai-chat-chip:hover::before { transform: translateX(2px); }
+
 .claudeai-chat-feed {
-    flex: 1; overflow-y: auto; padding: 14px;
-    background: #faf8f6; min-height: 0;
+    flex: 1; overflow-y: auto; padding: 22px 22px 8px;
+    background: #faf8f5; min-height: 0;
     scroll-behavior: smooth;
 }
-.claudeai-chat-empty { text-align: center; color: #777; padding: 60px 20px; }
-.claudeai-chat-empty h3 { font-size: 16px; color: #303030; margin: 0 0 6px; }
-.claudeai-chat-empty p { font-size: 12px; max-width: 380px; margin: 0 auto; }
+.claudeai-chat-feed::-webkit-scrollbar { width: 8px; }
+.claudeai-chat-feed::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 4px; }
+.claudeai-chat-feed::-webkit-scrollbar-track { background: transparent; }
 
-.claudeai-bubble { display: flex; margin-bottom: 10px; }
+.claudeai-chat-empty { text-align: center; color: #707070; padding: 50px 20px 20px; }
+.claudeai-chat-empty .claudeai-empty-mark {
+    width: 60px; height: 60px; border-radius: 18px; margin: 0 auto 16px;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 22px rgba(235,82,2,.32);
+}
+.claudeai-chat-empty .claudeai-empty-mark svg {
+    width: 30px; height: 30px;
+    fill: #fff !important; stroke: none !important;
+}
+.claudeai-chat-empty h3 { font-size: 18px; color: #1f1f1f; margin: 0 0 8px; font-weight: 700; }
+.claudeai-chat-empty p { font-size: 13px; max-width: 460px; margin: 0 auto 18px; line-height: 1.5; }
+.claudeai-empty-suggest {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    max-width: 540px; margin: 0 auto;
+}
+.claudeai-empty-suggest .claudeai-chat-chip { text-align: left; }
+@media (max-width: 700px) { .claudeai-empty-suggest { grid-template-columns: 1fr; } }
+
+/* Bubbles — Claude.ai inspired. AI: white card with sparkle avatar.
+   User: dark gradient pill, right-aligned. Err: soft red. */
+.claudeai-bubble { display: flex; gap: 10px; margin-bottom: 14px; align-items: flex-start; }
 .claudeai-bubble--user { justify-content: flex-end; }
+.claudeai-bubble--user .claudeai-avatar { display: none; }
+
+.claudeai-avatar {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f);
+    box-shadow: 0 2px 5px rgba(235,82,2,.28);
+    margin-top: 2px;
+    padding: 0; box-sizing: border-box;
+}
+.claudeai-avatar svg {
+    width: 15px; height: 15px;
+    fill: currentColor !important; stroke: none !important;
+}
+.claudeai-avatar svg path { fill: currentColor !important; stroke: none !important; }
+.claudeai-bubble.is-continuation .claudeai-avatar { visibility: hidden; }
+
 .claudeai-bubble-body {
-    max-width: 76%; padding: 8px 12px; border-radius: 4px;
-    font-size: 13px; line-height: 1.5;
+    max-width: 76%; padding: 11px 14px; border-radius: 14px;
+    font-size: 13.5px; line-height: 1.55; word-wrap: break-word;
 }
-.claudeai-bubble--user .claudeai-bubble-body { background: #eb5202; color: #fff; }
-.claudeai-bubble--ai   .claudeai-bubble-body { background: #fff; border: 1px solid #e3e3e3; }
-.claudeai-bubble--err  .claudeai-bubble-body { background: #fde2e2; color: #b30000; border: 1px solid #f5b3b3; }
-.claudeai-bubble code { background: #f5f5f5; padding: 1px 4px; border-radius: 2px; font-size: 12px; }
+.claudeai-bubble--user .claudeai-bubble-body {
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f); color: #fff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 3px 10px rgba(20,20,20,.16);
+}
+.claudeai-bubble--ai .claudeai-bubble-body {
+    background: #fff; border: 1px solid #ece6df; color: #1f1f1f;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 2px rgba(20,20,20,.04);
+}
+.claudeai-bubble--err .claudeai-bubble-body {
+    background: #fff5f5; color: #b30000; border: 1px solid #f5c6c6;
+    border-radius: 10px;
+}
+.claudeai-bubble code {
+    background: rgba(0,0,0,.05); padding: 1px 5px; border-radius: 3px;
+    font-size: 12px; font-family: 'JetBrains Mono', Menlo, monospace;
+}
+.claudeai-bubble--user .claudeai-bubble-body code { background: rgba(255,255,255,.18); color: #fff; }
+.claudeai-bubble pre {
+    background: #f7f6f3; padding: 10px 12px; border-radius: 8px;
+    font-size: 12px; overflow-x: auto; margin: 8px 0;
+    border: 1px solid #ece6df;
+}
 
+/* Refined tool chip — sits between bubbles with Claude-style accent. */
 .claudeai-tool-call {
-    display: inline-flex; gap: 6px; padding: 4px 10px;
-    background: #f0f5ff; border: 1px solid #c7d8f0; border-radius: 3px;
-    font-size: 11px; margin: 4px 0; color: #1f4480;
+    margin: 6px 0 6px 40px;
+    background: #fff; border: 1px solid #ece6df;
+    border-left: 3px solid #5e7ce2; border-radius: 8px;
+    font-size: 12px; color: #2a2a2a;
+    padding: 0;
+    overflow: hidden;
 }
-.claudeai-tool-call--err { background: #fde2e2; border-color: #f5b3b3; color: #b30000; }
-.claudeai-tool-call code { font-family: Menlo, monospace; font-size: 11px; }
+.claudeai-tool-call--err { border-left-color: #d93b3b; }
 
-.claudeai-dots { display: inline-flex; gap: 3px; }
+.claudeai-dots { display: inline-flex; gap: 4px; align-items: center; }
 .claudeai-dots span {
-    width: 5px; height: 5px; border-radius: 50%; background: #adadad;
-    animation: claudeai-bounce 1s infinite;
+    width: 6px; height: 6px; border-radius: 50%; background: #eb5202;
+    animation: claudeai-bounce 1.2s infinite;
 }
 .claudeai-dots span:nth-child(2) { animation-delay: .15s; }
 .claudeai-dots span:nth-child(3) { animation-delay: .3s; }
-@keyframes claudeai-bounce { 0%,60%,100% { transform: translateY(0); opacity: .5 } 30% { transform: translateY(-3px); opacity: 1 } }
+@keyframes claudeai-bounce {
+    0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+    40%           { opacity: 1;   transform: translateY(-3px); }
+}
 
-.claudeai-meta { font-size: 11px; color: #999; margin-top: 4px; padding-top: 4px; border-top: 1px solid #f0f0f0; }
+.claudeai-meta {
+    font-size: 11px; color: #999; margin-top: 6px; padding-top: 6px;
+    border-top: 1px dashed #ece6df;
+    display: flex; gap: 10px; flex-wrap: wrap;
+}
+.claudeai-bubble--user .claudeai-bubble-body .claudeai-meta {
+    border-top-color: rgba(255,255,255,.15); color: rgba(255,255,255,.7);
+}
 
+/* Composer — pill shape with rounded attach + circular send button. */
 .claudeai-composer {
-    display: flex; gap: 8px; padding: 10px; align-items: flex-end;
-    background: #fff; border-top: 1px solid #e3e3e3;
+    padding: 12px 16px 14px;
+    background: #fff;
+    border-top: 1px solid #ece6df;
+    flex-shrink: 0;
+}
+.claudeai-composer-inner {
+    display: flex; align-items: flex-end; gap: 8px;
+    background: #f7f6f3; border: 1px solid #ece6df;
+    border-radius: 16px; padding: 6px 6px 6px 10px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.claudeai-composer-inner:focus-within {
+    border-color: #eb5202;
+    box-shadow: 0 0 0 3px rgba(235,82,2,.12);
 }
 .claudeai-composer-input {
-    flex: 1; resize: none; border: 1px solid #adadad; border-radius: 1px;
-    padding: 6px 10px; font-size: 13px; font-family: inherit;
-    min-height: 32px; max-height: 200px;
+    flex: 1; resize: none; border: none; background: transparent;
+    padding: 8px 6px; font-size: 13.5px; font-family: inherit;
+    color: #1f1f1f; outline: none;
+    min-height: 38px; max-height: 200px; line-height: 1.5;
 }
-.claudeai-composer-input:focus { outline: none; border-color: #eb5202; box-shadow: 0 0 0 1px #eb5202; }
+.claudeai-composer-input::placeholder { color: #9a9a9a; }
 .claudeai-attach-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 32px; height: 32px; border: 1px solid #adadad; border-radius: 1px;
-    color: #777; cursor: pointer; flex-shrink: 0;
-    background: #fff; transition: color .15s, border-color .15s;
+    width: 36px; height: 36px; border: none; border-radius: 10px;
+    color: #707070; cursor: pointer; flex-shrink: 0;
+    background: transparent; transition: color .15s, background .15s;
+    padding: 0; box-sizing: border-box; line-height: 1;
 }
-.claudeai-attach-btn:hover { color: #eb5202; border-color: #eb5202; }
-/* Magento admin's global svg{fill:currentColor} would turn outline icons
-   into solid blocks here too — force fill:none + stroke=currentColor. */
+.claudeai-attach-btn:hover { color: #eb5202; background: rgba(235,82,2,.08); }
 .claudeai-attach-btn svg,
 .claudeai-attach-btn svg path { fill: none !important; stroke: currentColor !important; }
+
+.claudeai-send {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f); color: #fff; border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(235,82,2,.32);
+    transition: transform .15s, box-shadow .15s;
+    flex-shrink: 0;
+    padding: 0; box-sizing: border-box; line-height: 1;
+}
+.claudeai-send:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(235,82,2,.42); }
+.claudeai-send:disabled { background: #d4d4d4; cursor: not-allowed; box-shadow: none; }
+.claudeai-send svg {
+    width: 16px; height: 16px;
+    fill: none !important; stroke: currentColor !important;
+}
+.claudeai-stop {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: #fff; border: 1.5px solid #d93b3b; color: #d93b3b;
+    cursor: pointer; display: none; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    padding: 0; box-sizing: border-box; line-height: 1;
+    transition: background .15s ease;
+}
+.claudeai-stop.is-active { display: flex; }
+.claudeai-stop:hover { background: #fff5f5; }
+.claudeai-stop svg { width: 11px; height: 11px; fill: currentColor !important; stroke: none !important; }
 .claudeai-attachments {
     display: flex; gap: 6px; padding: 8px 10px; flex-wrap: wrap;
     background: #fafafa; border-top: 1px solid #e3e3e3;
