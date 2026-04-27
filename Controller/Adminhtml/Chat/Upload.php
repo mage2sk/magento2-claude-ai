@@ -204,6 +204,14 @@ HTA;
                 'is_pdf'         => $isPdf,
                 'is_text'        => $isText,
                 'claude_can_see' => $isIngestible,
+                // Sibling text block — Send.php injects this alongside the
+                // image/document so Claude knows where the file lives on
+                // disk and can pass that path to set_store_logo / etc.
+                'path_note'      => sprintf(
+                    "[The user attached a file: %s. It was saved at media path: %s. Pass this exact source_path to set_store_logo if asked to use it as the logo.]",
+                    $original,
+                    $relPath
+                ),
             ];
 
             if ($isIngestible) {

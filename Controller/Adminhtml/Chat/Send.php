@@ -179,6 +179,13 @@ class Send extends Action implements HttpPostActionInterface, CsrfAwareActionInt
                 continue;
             }
             $blocks[] = $block;
+            // For image/document attachments, also surface the saved media
+            // path as a separate text block so Claude can pass it to tools
+            // like set_store_logo. JS forwards path_note as it received it
+            // from /chat/upload — server-trusted, never client-authored.
+            if (in_array($type, ['image', 'document'], true) && !empty($a['path_note'])) {
+                $blocks[] = ['type' => 'text', 'text' => (string) $a['path_note']];
+            }
         }
         if ($text !== '') {
             $blocks[] = ['type' => 'text', 'text' => $text];

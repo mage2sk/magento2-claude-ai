@@ -136,6 +136,16 @@
                     <label>Read store info</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="update_config" translate="label comment" type="select" sortOrder="72" showInDefault="1">
+                    <label>Write store config (whitelisted paths)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Strict allow-list of paths only — store name, address, header/footer copy, email senders, locale. NEVER payments, taxes, shipping, security, or URLs.</comment>
+                </field>
+                <field id="set_store_logo" translate="label comment" type="select" sortOrder="74" showInDefault="1">
+                    <label>Set storefront header logo</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Take a chat-uploaded image and apply it as the store logo. Source must live under media/panth/claudeai/.</comment>
+                </field>
                 <field id="cache_reindex" translate="label" type="select" sortOrder="80" showInDefault="1">
                     <label>Flush caches &amp; reindex</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

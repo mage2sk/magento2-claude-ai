@@ -5,6 +5,8 @@ namespace Panth\ClaudeAi\Model;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface as ConfigWriterInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Backend\Model\Auth\Session as AdminSession;
 use Psr\Log\LoggerInterface;
@@ -26,8 +28,65 @@ class CheckpointService
         private readonly ProductRepositoryInterface $productRepository,
         private readonly StockRegistryInterface $stockRegistry,
         private readonly AdminSession $adminSession,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly ScopeConfigInterface $scopeConfig,
+        private readonly ConfigWriterInterface $configWriter
     ) {
+    }
+
+    /**
+     * Snapshot the current value of one or more config paths so a write can
+     * be undone by `restore_checkpoint`. before_state is keyed by
+     * "scope:scope_id:path" so we can restore back into the exact scope.
+     *
+     * @param array<int,array{path:string,scope:string,scope_id:int}> $entries
+     */
+    public function snapshotConfig(
+        string $opType,
+        array $entries,
+        string $description,
+        string $conversationId = ''
+    ): string {
+        $beforeState = [];
+        foreach ($entries as $e) {
+            $path     = (string) ($e['path'] ?? '');
+            $scope    = (string) ($e['scope'] ?? 'default');
+            $scopeId  = (int) ($e['scope_id'] ?? 0);
+            if ($path === '') {
+                continue;
+            }
+            $current = $this->scopeConfig->getValue($path, $scope, $scopeId ?: null);
+            $beforeState[$scope . ':' . $scopeId . ':' . $path] = [
+                'path'      => $path,
+                'scope'     => $scope,
+                'scope_id'  => $scopeId,
+                'value'     => $current,
+            ];
+        }
+
+        $checkpointId = 'cp_' . bin2hex(random_bytes(8));
+        $userId = null;
+        try {
+            $u = $this->adminSession->getUser();
+            $userId = $u ? (int) $u->getId() : null;
+        } catch (\Throwable) {
+            // CLI / no session
+        }
+        $this->resource->getConnection()->insert(
+            $this->resource->getTableName('panth_claudeai_checkpoint'),
+            [
+                'checkpoint_id'   => $checkpointId,
+                'conversation_id' => $conversationId,
+                'op_type'         => $opType,
+                'entity_type'     => 'config',
+                'record_count'    => count($beforeState),
+                'before_state'    => json_encode($beforeState, JSON_UNESCAPED_SLASHES),
+                'description'     => $description,
+                'status'          => Checkpoint::STATUS_ACTIVE,
+                'admin_user_id'   => $userId,
+            ]
+        );
+        return $checkpointId;
     }
 
     /**
@@ -140,6 +199,19 @@ class CheckpointService
                         if (isset($state['qty']))         { $stock->setQty((float) $state['qty']); }
                         if (isset($state['is_in_stock'])) { $stock->setIsInStock((int) $state['is_in_stock']); }
                         $this->stockRegistry->updateStockItemBySku((string) $sku, $stock);
+                        $restored++;
+                        break;
+                    case 'config':
+                        $path     = (string) ($state['path'] ?? '');
+                        $scope    = (string) ($state['scope'] ?? 'default');
+                        $scopeId  = (int) ($state['scope_id'] ?? 0);
+                        $value    = $state['value'] ?? null;
+                        if ($path === '') { break; }
+                        if ($value === null) {
+                            $this->configWriter->delete($path, $scope, $scopeId);
+                        } else {
+                            $this->configWriter->save($path, (string) $value, $scope, $scopeId);
+                        }
                         $restored++;
                         break;
                 }

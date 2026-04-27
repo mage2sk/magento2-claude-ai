@@ -17,6 +17,8 @@
                 <item name="store_insights"          xsi:type="object">Panth\ClaudeAi\Model\Tool\StoreInsights</item>
                 <item name="get_low_stock_products"  xsi:type="object">Panth\ClaudeAi\Model\Tool\LowStock</item>
                 <item name="store_info"              xsi:type="object">Panth\ClaudeAi\Model\Tool\StoreInfo</item>
+                <item name="update_config"           xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateConfig</item>
+                <item name="set_store_logo"          xsi:type="object">Panth\ClaudeAi\Model\Tool\SetStoreLogo</item>
                 <item name="get_modules"             xsi:type="object">Panth\ClaudeAi\Model\Tool\GetModules</item>
                 <item name="cache_reindex"           xsi:type="object">Panth\ClaudeAi\Model\Tool\CacheReindex</item>
                 <item name="restore_checkpoint"      xsi:type="object">Panth\ClaudeAi\Model\Tool\RestoreCheckpoint</item>

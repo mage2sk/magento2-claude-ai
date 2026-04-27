@@ -28,6 +28,8 @@
                 <store_insights>1</store_insights>
                 <get_low_stock_products>1</get_low_stock_products>
                 <store_info>1</store_info>
+                <update_config>1</update_config>
+                <set_store_logo>1</set_store_logo>
                 <get_modules>1</get_modules>
                 <cache_reindex>1</cache_reindex>
                 <restore_checkpoint>1</restore_checkpoint>

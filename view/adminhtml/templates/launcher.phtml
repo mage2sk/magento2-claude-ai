@@ -322,6 +322,7 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
                 name: data.name, mime: data.mime, size: data.size, url: data.url,
                 is_image: data.is_image, is_pdf: data.is_pdf, is_text: data.is_text,
                 claude_can_see: data.claude_can_see, claude_block: data.claude_block,
+                path_note: data.path_note,
             };
             if (data.is_image && data.claude_block && data.claude_block.source) {
                 att.preview_url = 'data:' + data.claude_block.source.media_type + ';base64,' + data.claude_block.source.data;
@@ -345,7 +346,11 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
         sendBtn.disabled = true;
         const t = thinking();
         try {
-            const apiAttachments = sentAttachments.map(a => ({ claude_block: a.claude_block, name: a.name }));
+            const apiAttachments = sentAttachments.map(a => ({
+                claude_block: a.claude_block,
+                path_note:    a.path_note,
+                name:         a.name,
+            }));
             const resp = await fetch(SEND_URL, {
                 method: 'POST', credentials: 'include',
                 headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },

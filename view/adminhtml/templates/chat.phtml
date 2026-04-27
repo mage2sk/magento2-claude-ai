@@ -231,6 +231,7 @@ $recent = $block->getRecentConversations(40);
                 is_text: data.is_text,
                 claude_can_see: data.claude_can_see,
                 claude_block: data.claude_block,
+                path_note: data.path_note,
             };
             if (data.is_image && data.claude_block && data.claude_block.source) {
                 att.preview_url = 'data:' + data.claude_block.source.media_type + ';base64,' + data.claude_block.source.data;
@@ -257,7 +258,11 @@ $recent = $block->getRecentConversations(40);
         const t = thinking();
         try {
             // Strip preview-only fields before sending — server only needs claude_block.
-            const apiAttachments = sentAttachments.map(a => ({ claude_block: a.claude_block, name: a.name }));
+            const apiAttachments = sentAttachments.map(a => ({
+                claude_block: a.claude_block,
+                path_note:    a.path_note,
+                name:         a.name,
+            }));
             const resp = await fetch(SEND_URL, {
                 method: 'POST', credentials: 'include',
                 headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
