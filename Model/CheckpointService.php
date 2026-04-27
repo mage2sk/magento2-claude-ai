@@ -171,6 +171,19 @@ class CheckpointService
             return ['status' => 'error', 'message' => "Checkpoint {$checkpointId} not found."];
         }
 
+        // Ownership gate: admin A must not be able to undo admin B's edits
+        // by passing B's checkpoint_id. NULL owners are pre-ownership rows
+        // and remain restorable for any admin (legacy compatibility).
+        $u = $this->adminSession->getUser();
+        $currentUserId = $u ? (int) $u->getId() : 0;
+        $rowOwner = $row['admin_user_id'] !== null ? (int) $row['admin_user_id'] : null;
+        if ($rowOwner !== null && $rowOwner !== $currentUserId) {
+            return [
+                'status'  => 'error',
+                'message' => "Checkpoint {$checkpointId} belongs to another admin and cannot be restored from this account.",
+            ];
+        }
+
         $entityType = (string) $row['entity_type'];
         $beforeState = json_decode((string) $row['before_state'], true) ?: [];
 

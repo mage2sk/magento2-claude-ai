@@ -5,6 +5,7 @@ namespace Panth\ClaudeAi\Controller\Adminhtml\Chat;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Backend\Model\Auth\Session as AdminSession;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Psr\Log\LoggerInterface;
@@ -27,6 +28,7 @@ class Load extends Action
         Context $context,
         private readonly JsonFactory $jsonFactory,
         private readonly ResourceConnection $resource,
+        private readonly AdminSession $adminSession,
         private readonly LoggerInterface $logger
     ) {
         parent::__construct($context);
@@ -46,13 +48,22 @@ class Load extends Action
         try {
             $conn  = $this->resource->getConnection();
             $table = $this->resource->getTableName('panth_claudeai_message');
+
+            // Scope to the current admin user — admin A must not be able to
+            // read admin B's private chats by guessing the conversation_id.
+            // Legacy rows (pre-1.6 backfill) carry NULL admin_user_id and
+            // remain visible to anyone with ai_chat ACL — they were never
+            // tied to a specific user.
+            $u = $this->adminSession->getUser();
+            $userId = $u ? (int) $u->getId() : 0;
             $rows = $conn->fetchAll(
                 "SELECT role, content_json, sequence, created_at, input_tokens,
                         output_tokens, cost_usd, model
                    FROM {$table}
                   WHERE conversation_id = ?
+                    AND (admin_user_id = ? OR admin_user_id IS NULL)
                   ORDER BY sequence ASC, message_id ASC",
-                [$cid]
+                [$cid, $userId]
             );
             if (!$rows) {
                 return $result->setData(['success' => false, 'error' => 'Conversation not found.']);

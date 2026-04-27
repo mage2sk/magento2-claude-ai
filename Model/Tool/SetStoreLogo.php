@@ -97,6 +97,21 @@ class SetStoreLogo implements ToolInterface
             if (!is_file($absSource)) {
                 return ['status' => 'error', 'message' => 'Uploaded file not found at media/' . $source];
             }
+            // Defence in depth: realpath() resolves symlinks and `..`
+            // segments. Even though str_starts_with("panth/claudeai/")
+            // already passed, an attacker could pass
+            // "panth/claudeai/../../etc/passwd" — make sure the file we
+            // actually read lives inside the allowed upload dir.
+            $realSource = @realpath($absSource);
+            $realAllowed = @realpath($media->getAbsolutePath(self::ALLOWED_SOURCE));
+            if ($realSource === false || $realAllowed === false
+                || strncmp($realSource, $realAllowed . DIRECTORY_SEPARATOR, strlen($realAllowed) + 1) !== 0
+            ) {
+                return [
+                    'status'  => 'error',
+                    'message' => 'source_path resolves outside the allowed upload directory.',
+                ];
+            }
             $info = @getimagesize($absSource);
             if ($info === false || !in_array($info[2] ?? null, self::ALLOWED_IMAGETYPE, true)) {
                 return ['status' => 'error', 'message' => 'That file is not a recognized image (jpg/png/gif/webp).'];

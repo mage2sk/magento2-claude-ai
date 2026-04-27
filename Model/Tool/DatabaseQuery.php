@@ -29,6 +29,12 @@ use Panth\ClaudeAi\Model\Config;
 class DatabaseQuery implements ToolInterface
 {
     private const MAX_ROWS = 100;
+    /**
+     * Hard reject list — single tokens that must never appear anywhere in
+     * the statement. Matched with \b word boundaries so `;INSERT` and
+     * `(INSERT` are caught (the previous space-only check missed those).
+     * LOAD_FILE blocks reading server files; OUTFILE/DUMPFILE block writes.
+     */
     private const FORBIDDEN = [
         'INSERT', 'UPDATE', 'DELETE', 'REPLACE',
         'DROP', 'ALTER', 'CREATE', 'RENAME', 'TRUNCATE',
@@ -36,6 +42,21 @@ class DatabaseQuery implements ToolInterface
         'CALL', 'HANDLER', 'LOAD', 'LOCK', 'UNLOCK',
         'EXECUTE', 'PREPARE', 'DEALLOCATE',
         'SET', 'RESET', 'FLUSH', 'KILL', 'OPTIMIZE',
+        // File access functions / clauses inside SELECT.
+        'OUTFILE', 'DUMPFILE', 'LOAD_FILE', 'INFILE',
+        // Timing-attack DoS primitives.
+        'BENCHMARK', 'SLEEP',
+    ];
+
+    /**
+     * Schemas the AI must never query. Magento's database_query is meant
+     * for inspecting application tables, not the server's privilege /
+     * performance metadata. Listing privileges, statement_history, or
+     * the `mysql.user` table would let a compromised prompt enumerate
+     * accounts and grants.
+     */
+    private const FORBIDDEN_SCHEMAS = [
+        'mysql.', 'performance_schema.', 'sys.',
     ];
 
     public function __construct(
@@ -83,10 +104,17 @@ class DatabaseQuery implements ToolInterface
                 return ['status' => 'error', 'message' => "Only SELECT/WITH/SHOW/DESCRIBE/EXPLAIN allowed; got '{$firstWord}'."];
             }
 
-            $upper = strtoupper(' ' . $firstStmt . ' ');
+            $upper = strtoupper($firstStmt);
             foreach (self::FORBIDDEN as $kw) {
-                if (str_contains($upper, ' ' . $kw . ' ')) {
+                // \b matches word boundaries — catches `;INSERT`, `(INSERT`,
+                // `\nINSERT`, `INTO OUTFILE` (OUTFILE on its own), etc.
+                if (preg_match('/\b' . preg_quote($kw, '/') . '\b/u', $upper) === 1) {
                     return ['status' => 'error', 'message' => "Statement contains forbidden keyword: {$kw}"];
+                }
+            }
+            foreach (self::FORBIDDEN_SCHEMAS as $schema) {
+                if (stripos($firstStmt, $schema) !== false) {
+                    return ['status' => 'error', 'message' => "Schema '{$schema}*' is not queryable."];
                 }
             }
 
@@ -123,9 +151,12 @@ class DatabaseQuery implements ToolInterface
 
     private function stripComments(string $sql): string
     {
-        // Remove /* ... */ block comments and -- line comments before keyword scan.
+        // Remove /* ... */ block, -- line, and # line comments before
+        // keyword scan, so a forbidden keyword hidden inside a comment
+        // can't sneak through the allow-list.
         $sql = preg_replace('!/\*.*?\*/!s', ' ', $sql) ?? $sql;
         $sql = preg_replace('/--[^\r\n]*/m', ' ', $sql) ?? $sql;
+        $sql = preg_replace('/#[^\r\n]*/m',  ' ', $sql) ?? $sql;
         return $sql;
     }
 }
