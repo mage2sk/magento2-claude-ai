@@ -217,6 +217,7 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
 (function () {
     'use strict';
     const SEND_URL   = <?= json_encode($block->getSendUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+    const STREAM_URL = <?= json_encode($block->getStreamUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const UPLOAD_URL = <?= json_encode($block->getUploadUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const FORM_KEY   = <?= json_encode($block->getFormKey(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
 
@@ -333,6 +334,11 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
             bubble('err', 'Could not upload that file.');
         }
     }
+    function setStatus(el, text) {
+        if (!el) return;
+        el.innerHTML = '<span class="cw-dots"><span></span><span></span><span></span></span> <em style="color:#777;font-style:normal;font-size:12px">' + esc(text) + '</em>';
+    }
+
     async function send(message) {
         const attHtml = pendingAttachments.map(a => a.preview_url
             ? '<img class="attached" src="' + esc(a.preview_url) + '" alt="">'
@@ -344,35 +350,77 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
         renderAttachments();
         input.value = ''; input.style.height = 'auto';
         sendBtn.disabled = true;
+
+        const apiAttachments = sentAttachments.map(a => ({
+            claude_block: a.claude_block,
+            path_note:    a.path_note,
+            name:         a.name,
+        }));
         const t = thinking();
+        setStatus(t, 'Reading your message…');
+
+        let done = null;
         try {
-            const apiAttachments = sentAttachments.map(a => ({
-                claude_block: a.claude_block,
-                path_note:    a.path_note,
-                name:         a.name,
-            }));
-            const resp = await fetch(SEND_URL, {
+            const resp = await fetch(STREAM_URL, {
                 method: 'POST', credentials: 'include',
-                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/event-stream' },
                 body: JSON.stringify({
                     message, attachments: apiAttachments, history: conversation,
                     conversation_id: conversationId, form_key: FORM_KEY,
                 }),
             });
-            const data = await resp.json();
+            if (!resp.ok || !resp.body) {
+                t.remove();
+                bubble('err', '<strong>Error:</strong> HTTP ' + resp.status);
+                return;
+            }
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+            const handle = (event, data) => {
+                if (event === 'thinking')      setStatus(t, data.message || 'Thinking…');
+                else if (event === 'tool_start') setStatus(t, 'Calling tool: ' + (data.name || ''));
+                else if (event === 'tool_done') {
+                    const summary = (data.summary || '').slice(0, 100);
+                    const cls = data.status === 'error' ? ' cw-tool--err' : '';
+                    t.insertAdjacentHTML('beforebegin',
+                        '<div class="cw-tool' + cls + '">' +
+                        '<code>' + esc(data.name) + '</code> ' + esc(summary) +
+                        '</div>');
+                    setStatus(t, 'Got results — figuring out next step…');
+                }
+                else if (event === 'writing_reply') setStatus(t, 'Writing the reply…');
+                else if (event === 'done')          done = data;
+                else if (event === 'error') {
+                    t.remove();
+                    bubble('err', '<strong>Error:</strong> ' + esc(data.message || 'Unknown'));
+                }
+            };
+            while (true) {
+                const { value, done: sd } = await reader.read();
+                if (sd) break;
+                buffer += decoder.decode(value, { stream: true });
+                let idx;
+                while ((idx = buffer.indexOf('\n\n')) !== -1) {
+                    const chunk = buffer.slice(0, idx);
+                    buffer = buffer.slice(idx + 2);
+                    let evt = 'message', payload = '';
+                    for (const line of chunk.split('\n')) {
+                        if (line.startsWith('event:')) evt = line.slice(6).trim();
+                        else if (line.startsWith('data:')) payload += line.slice(5).trim();
+                    }
+                    if (payload) { try { handle(evt, JSON.parse(payload)); } catch {} }
+                }
+            }
+            if (!done) { t.remove(); return; }
             t.remove();
-            if (!data.success) { bubble('err', '<strong>Error:</strong> ' + esc(data.error || 'Unknown error')); return; }
-            conversationId = data.conversation_id || conversationId;
-            conversation = data.conversation || conversation;
-            (data.tool_calls || []).forEach(c => {
-                const summary = (c.output && (c.output.summary || c.output.message)) || '';
-                const status  = (c.output && c.output.status) || 'success';
-                toolChip(c.name, summary, status);
-            });
-            const aiBubble = bubble('ai', md(data.text || '(no reply)'));
-            const u = data.usage || {};
-            const cost = data.cost_display || '';
-            const meta = (data.iterations ? 'iter ' + data.iterations : '') +
+
+            conversationId = done.conversation_id || conversationId;
+            conversation = done.conversation || conversation;
+            const aiBubble = bubble('ai', md(done.text || '(no reply)'));
+            const u = done.usage || {};
+            const cost = done.cost_display || '';
+            const meta = (done.iterations ? 'iter ' + done.iterations : '') +
                 (u.input ? ' · in ' + u.input : '') +
                 (u.output ? ' · out ' + u.output : '') +
                 (cost ? ' · ' + cost : '');

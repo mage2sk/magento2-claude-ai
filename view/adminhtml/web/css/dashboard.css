@@ -162,6 +162,13 @@
     font-size: 10px; color: #999; margin-top: 2px;
     font-family: Menlo, monospace;
 }
+.claudeai-status-line {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: #777; font-size: 12px;
+}
+.claudeai-status-line em {
+    font-style: normal;
+}
 .claudeai-chat-main { display: flex; flex-direction: column; padding: 0; }
 .claudeai-chat-side h4 {
     font-size: 11px; font-weight: 700; text-transform: uppercase;

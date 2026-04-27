@@ -113,6 +113,7 @@ $recent = $block->getRecentConversations(40);
 (function () {
     'use strict';
     const SEND_URL   = <?= json_encode($block->getSendUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+    const STREAM_URL = <?= json_encode($block->getStreamUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const UPLOAD_URL = <?= json_encode($block->getUploadUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const LOAD_URL   = <?= json_encode($block->getLoadUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const FORM_KEY   = <?= json_encode($block->getFormKey(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
@@ -243,6 +244,104 @@ $recent = $block->getRecentConversations(40);
         }
     }
 
+    function setStatus(el, text) {
+        if (!el) return;
+        const body = el.querySelector('.claudeai-bubble-body') || el;
+        body.innerHTML = '<span class="claudeai-status-line">' +
+            '<span class="claudeai-dots"><span></span><span></span><span></span></span>' +
+            ' <em>' + esc(text) + '</em></span>';
+    }
+
+    async function streamSend(message, sentAttachments) {
+        const apiAttachments = sentAttachments.map(a => ({
+            claude_block: a.claude_block,
+            path_note:    a.path_note,
+            name:         a.name,
+        }));
+        const t = thinking();
+        setStatus(t, '<?= $escaper->escapeJs(__('Reading your message…')) ?>');
+
+        const resp = await fetch(STREAM_URL, {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/event-stream' },
+            body: JSON.stringify({
+                message,
+                attachments: apiAttachments,
+                history: conversation,
+                conversation_id: conversationId,
+                form_key: FORM_KEY,
+            }),
+        });
+        if (!resp.ok || !resp.body) {
+            t.remove();
+            bubble('err', '<strong><?= $escaper->escapeJs(__('Error:')) ?></strong> HTTP ' + resp.status);
+            return;
+        }
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+        let done = null;
+
+        const handle = (event, data) => {
+            if (event === 'thinking') {
+                setStatus(t, data.message || '<?= $escaper->escapeJs(__('Thinking…')) ?>');
+            } else if (event === 'tool_start') {
+                setStatus(t, '<?= $escaper->escapeJs(__('Calling tool:')) ?> ' + (data.name || ''));
+            } else if (event === 'tool_done') {
+                const summary = (data.summary || '').slice(0, 120);
+                const cls = data.status === 'error' ? 'claudeai-tool-call--err' : '';
+                t.insertAdjacentHTML('beforebegin',
+                    '<div class="claudeai-tool-call ' + cls + '">' +
+                    '<code>' + esc(data.name) + '</code><span>' + esc(summary) + '</span>' +
+                    '</div>');
+                setStatus(t, '<?= $escaper->escapeJs(__('Got results — thinking about what to do next…')) ?>');
+            } else if (event === 'writing_reply') {
+                setStatus(t, '<?= $escaper->escapeJs(__('Writing the reply…')) ?>');
+            } else if (event === 'done') {
+                done = data;
+            } else if (event === 'error') {
+                t.remove();
+                bubble('err', '<strong><?= $escaper->escapeJs(__('Error:')) ?></strong> ' + esc(data.message || 'Unknown'));
+            }
+        };
+
+        while (true) {
+            const { value, done: streamDone } = await reader.read();
+            if (streamDone) break;
+            buffer += decoder.decode(value, { stream: true });
+            // Parse SSE — events are separated by blank lines.
+            let idx;
+            while ((idx = buffer.indexOf('\n\n')) !== -1) {
+                const chunk = buffer.slice(0, idx);
+                buffer = buffer.slice(idx + 2);
+                let evt = 'message', payload = '';
+                for (const line of chunk.split('\n')) {
+                    if (line.startsWith('event:')) evt = line.slice(6).trim();
+                    else if (line.startsWith('data:')) payload += line.slice(5).trim();
+                }
+                if (payload) {
+                    try { handle(evt, JSON.parse(payload)); } catch (e) { /* ignore */ }
+                }
+            }
+        }
+
+        if (!done) { t.remove(); return; }
+        t.remove();
+
+        conversationId = done.conversation_id || conversationId;
+        conversation   = done.conversation || conversation;
+
+        const aiBubble = bubble('ai', md(done.text || '(no reply)'));
+        const u = done.usage || {};
+        const cost = done.cost_display || '';
+        const meta = '<?= $escaper->escapeJs(__('Iter:')) ?> ' + (done.iterations || 1) +
+            ' · in ' + (u.input || 0) + ' · out ' + (u.output || 0) +
+            (u.cache_read ? ' · cache: ' + u.cache_read : '') +
+            (cost ? ' · ' + cost : '');
+        const lastBody = feed.querySelector('.claudeai-bubble--ai:last-child .claudeai-bubble-body');
+        if (lastBody) lastBody.insertAdjacentHTML('beforeend', '<div class="claudeai-meta">' + meta + '</div>');
+    }
+
     async function send(message) {
         // Render the user bubble — include thumbnails of attached images.
         const attHtml = pendingAttachments.map(a => {
@@ -255,51 +354,9 @@ $recent = $block->getRecentConversations(40);
         renderAttachments();
         input.value = ''; input.style.height = 'auto';
         sendBtn.disabled = true;
-        const t = thinking();
         try {
-            // Strip preview-only fields before sending — server only needs claude_block.
-            const apiAttachments = sentAttachments.map(a => ({
-                claude_block: a.claude_block,
-                path_note:    a.path_note,
-                name:         a.name,
-            }));
-            const resp = await fetch(SEND_URL, {
-                method: 'POST', credentials: 'include',
-                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                body: JSON.stringify({
-                    message,
-                    attachments: apiAttachments,
-                    history: conversation,
-                    conversation_id: conversationId,
-                    form_key: FORM_KEY,
-                }),
-            });
-            const data = await resp.json();
-            t.remove();
-            if (!data.success) {
-                bubble('err', '<strong><?= $escaper->escapeJs(__('Error:')) ?></strong> ' + esc(data.error || 'Unknown error'));
-                return;
-            }
-            conversationId = data.conversation_id || conversationId;
-            conversation = data.conversation || conversation;
-
-            (data.tool_calls || []).forEach(c => {
-                const summary = (c.output && (c.output.summary || c.output.message)) || '';
-                const status  = (c.output && c.output.status) || 'success';
-                toolChip(c.name, summary, status);
-            });
-            bubble('ai', md(data.text || '(no reply)'));
-
-            const u = data.usage || {};
-            const cost = data.cost_display || '';
-            const meta = '<?= $escaper->escapeJs(__('Iter:')) ?> ' + (data.iterations || 1) +
-                ' · in ' + (u.input || 0) + ' · out ' + (u.output || 0) +
-                (u.cache_read ? ' · cache: ' + u.cache_read : '') +
-                (cost ? ' · ' + cost : '');
-            const last = feed.querySelector('.claudeai-bubble--ai:last-child .claudeai-bubble-body');
-            if (last) last.insertAdjacentHTML('beforeend', '<div class="claudeai-meta">' + meta + '</div>');
+            await streamSend(message, sentAttachments);
         } catch (e) {
-            t.remove();
             bubble('err', '<strong><?= $escaper->escapeJs(__('Network error:')) ?></strong> ' + esc(e.message));
         } finally {
             sendBtn.disabled = false;

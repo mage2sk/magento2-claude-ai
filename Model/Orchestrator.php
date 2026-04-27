@@ -125,8 +125,14 @@ PROMPT;
      * @param mixed  $userMessage   String OR array of content blocks (for image-attached prompts)
      * @param string $conversationId
      */
-    public function run(array $history, $userMessage, string $conversationId): array
+    public function run(array $history, $userMessage, string $conversationId, ?callable $onProgress = null): array
     {
+        $emit = static function (string $event, array $data = []) use ($onProgress) {
+            if ($onProgress) {
+                try { $onProgress($event, $data); } catch (\Throwable) { /* never break the loop on UI errors */ }
+            }
+        };
+
         $messages = $history;
         $messages[] = ['role' => 'user', 'content' => $userMessage];
 
@@ -162,6 +168,7 @@ PROMPT;
             . $this->trainingRepo->renderForSystemPrompt(20);
 
         for ($i = 0; $i < $maxIterations; $i++) {
+            $emit('thinking', ['iteration' => $i + 1, 'message' => $i === 0 ? 'Reading your message…' : 'Thinking about the next step…']);
             $response = $this->client->send($messages, $systemPrompt, $toolDefs);
 
             $usage = $response['usage'] ?? [];
@@ -194,6 +201,7 @@ PROMPT;
                         $finalText .= ($block['text'] ?? '');
                     }
                 }
+                $emit('writing_reply', ['chars' => mb_strlen($finalText)]);
                 break;
             }
 
@@ -208,6 +216,7 @@ PROMPT;
                 $toolId   = (string) ($block['id'] ?? '');
                 $toolIn   = (array) ($block['input'] ?? []);
 
+                $emit('tool_start', ['name' => $toolName, 'input' => $toolIn]);
                 $toolStarted = microtime(true);
                 try {
                     $tool = $this->tools->get($toolName);
@@ -223,6 +232,14 @@ PROMPT;
                     $this->logger->error('[panth_claudeai] tool exception: ' . $e->getMessage(), ['tool' => $toolName]);
                 }
                 $durationMs = (int) round((microtime(true) - $toolStarted) * 1000);
+
+                $emit('tool_done', [
+                    'name'    => $toolName,
+                    'status'  => $isError ? 'error' : 'success',
+                    'summary' => (string) ($output['summary'] ?? $output['message'] ?? ''),
+                    'count'   => (int) ($output['affected_count'] ?? 0),
+                    'ms'      => $durationMs,
+                ]);
 
                 $toolCalls[] = ['name' => $toolName, 'input' => $toolIn, 'output' => $output];
 

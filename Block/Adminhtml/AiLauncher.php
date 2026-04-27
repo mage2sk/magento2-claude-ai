@@ -49,6 +49,11 @@ class AiLauncher extends Template
         return $this->getUrl('claudeai/chat/send');
     }
 
+    public function getStreamUrl(): string
+    {
+        return $this->getUrl('claudeai/chat/stream');
+    }
+
     public function getUploadUrl(): string
     {
         return $this->getUrl('claudeai/chat/upload');
