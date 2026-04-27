@@ -20,17 +20,22 @@
             </safety>
             <tools>
                 <get_products>1</get_products>
+                <manage_products>1</manage_products>
                 <update_product_price>1</update_product_price>
                 <update_product_status>1</update_product_status>
                 <update_inventory>1</update_inventory>
+                <manage_categories>1</manage_categories>
                 <customers>1</customers>
                 <orders>1</orders>
+                <manage_cms_pages>1</manage_cms_pages>
+                <manage_cms_blocks>1</manage_cms_blocks>
                 <store_insights>1</store_insights>
                 <get_low_stock_products>1</get_low_stock_products>
                 <store_info>1</store_info>
                 <update_config>1</update_config>
                 <set_store_logo>1</set_store_logo>
                 <get_modules>1</get_modules>
+                <database_query>1</database_query>
                 <cache_reindex>1</cache_reindex>
                 <restore_checkpoint>1</restore_checkpoint>
             </tools>

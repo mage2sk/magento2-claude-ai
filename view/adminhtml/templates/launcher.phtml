@@ -5,246 +5,485 @@
  */
 ?>
 <style>
-.claudeai-launcher {
-    position: fixed; bottom: 20px; right: 20px; z-index: 900;
-    width: 52px; height: 52px; border-radius: 50%;
-    background: #eb5202; color: #fff; cursor: pointer;
+:root {
+    --pclaude-orange: #eb5202;
+    --pclaude-orange-dark: #c4410f;
+    --pclaude-ink: #1f1f1f;
+    --pclaude-text: #2a2a2a;
+    --pclaude-muted: #707070;
+    --pclaude-border: #e3e3e3;
+    --pclaude-bg: #ffffff;
+    --pclaude-feed: #f7f6f3;
+    --pclaude-shadow: 0 24px 48px rgba(20,20,20,.18), 0 6px 16px rgba(20,20,20,.08);
+}
+.pclaude-launcher {
+    position: fixed; bottom: 22px; right: 22px; z-index: 900;
+    width: 56px; height: 56px; border-radius: 16px;
+    background: linear-gradient(135deg, #ff6b1a 0%, #eb5202 60%, #c4410f 100%);
+    color: #fff; cursor: pointer; border: none;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 16px rgba(0,0,0,.18); border: none;
-    transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 10px 24px rgba(235,82,2,.32), 0 2px 6px rgba(20,20,20,.16);
+    transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, border-radius .2s;
 }
-.claudeai-launcher:hover { transform: scale(1.08); box-shadow: 0 6px 22px rgba(0,0,0,.25); }
-.claudeai-launcher:focus { outline: 2px solid #fff3e6; outline-offset: 2px; }
-.claudeai-launcher.is-open { transform: rotate(45deg); }
-.claudeai-launcher-tip {
-    position: absolute; right: 64px; top: 50%; transform: translateY(-50%);
-    background: #303030; color: #fff; font-size: 12px;
-    padding: 6px 10px; border-radius: 3px; white-space: nowrap;
-    opacity: 0; pointer-events: none; transition: opacity .15s;
+.pclaude-launcher:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 14px 28px rgba(235,82,2,.42), 0 3px 8px rgba(20,20,20,.18);
 }
-.claudeai-launcher:hover .claudeai-launcher-tip { opacity: 1; }
-.claudeai-launcher.is-open .claudeai-launcher-tip { display: none; }
+.pclaude-launcher:focus-visible {
+    outline: 3px solid #fff3e6; outline-offset: 2px;
+}
+.pclaude-launcher.is-open {
+    border-radius: 50%; transform: scale(.92);
+}
+.pclaude-launcher .pulse {
+    position: absolute; inset: 0; border-radius: inherit;
+    background: rgba(235,82,2,.55); animation: pclaudePulse 2.4s ease-out infinite;
+    z-index: -1; pointer-events: none;
+}
+@keyframes pclaudePulse {
+    0%   { transform: scale(1);   opacity: .55; }
+    80%  { transform: scale(1.6); opacity: 0;   }
+    100% { transform: scale(1.6); opacity: 0;   }
+}
+.pclaude-launcher-tip {
+    position: absolute; right: 70px; top: 50%; transform: translateY(-50%);
+    background: var(--pclaude-ink); color: #fff; font-size: 12px; font-weight: 500;
+    padding: 7px 12px; border-radius: 6px; white-space: nowrap;
+    opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease;
+}
+.pclaude-launcher:hover .pclaude-launcher-tip { opacity: 1; transform: translateY(-50%) translateX(-4px); }
+.pclaude-launcher.is-open .pclaude-launcher-tip { display: none; }
 
-.claudeai-widget {
-    position: fixed; bottom: 86px; right: 20px; z-index: 899;
-    width: 380px; max-width: calc(100vw - 32px);
-    height: 560px; max-height: calc(100vh - 110px);
-    min-width: 280px; min-height: 320px;
-    background: #fff; border: 1px solid #e3e3e3; border-radius: 8px;
-    box-shadow: 0 12px 32px rgba(0,0,0,.18);
+/* ====================== Widget panel ====================== */
+.pclaude-widget {
+    position: fixed; bottom: 96px; right: 22px; z-index: 899;
+    width: 420px; max-width: calc(100vw - 32px);
+    height: 620px; max-height: calc(100vh - 130px);
+    min-width: 320px; min-height: 380px;
+    background: var(--pclaude-bg);
+    border-radius: 18px;
+    box-shadow: var(--pclaude-shadow);
     display: none; flex-direction: column; overflow: hidden;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Inter', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    transform: translateY(16px) scale(.96); opacity: 0;
+    transition: transform .22s cubic-bezier(.34,1.56,.64,1), opacity .18s ease;
 }
-.claudeai-widget.is-open { display: flex; }
-/* Drag handle in the top-left to resize the panel from that corner. */
-.claudeai-widget-resize {
-    position: absolute; top: 0; left: 0;
-    width: 18px; height: 18px;
-    cursor: nwse-resize; z-index: 2;
-    background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,.6) 50%, rgba(255,255,255,.6) 60%, transparent 60%);
+.pclaude-widget.is-open { display: flex; transform: translateY(0) scale(1); opacity: 1; }
+
+/* Resize grip — top-left corner, subtle */
+.pclaude-resize {
+    position: absolute; top: 0; left: 0; width: 22px; height: 22px;
+    cursor: nwse-resize; z-index: 5;
 }
-.claudeai-widget-resize::before {
-    content: ""; position: absolute; top: 4px; left: 4px;
+.pclaude-resize::before {
+    content: ""; position: absolute; top: 6px; left: 6px;
     width: 8px; height: 8px;
-    border-top: 2px solid #fff; border-left: 2px solid #fff;
-    opacity: .85;
+    border-top: 2px solid rgba(255,255,255,.55); border-left: 2px solid rgba(255,255,255,.55);
+    border-radius: 1px;
 }
-body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
-.claudeai-widget-header {
-    padding: 12px 14px; background: #303030; color: #fff;
-    display: flex; align-items: center; justify-content: space-between;
-    flex-shrink: 0;
+body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
+
+/* ====================== Header ====================== */
+.pclaude-header {
+    padding: 16px 18px 14px;
+    background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+    color: #fff; flex-shrink: 0;
+    position: relative; overflow: hidden;
 }
-.claudeai-widget-header .title { font-weight: 600; font-size: 14px; }
-.claudeai-widget-header .meta { font-size: 11px; opacity: .8; margin-top: 2px; }
-.claudeai-widget-header .actions a {
-    color: #fde2c4; font-size: 11px; margin-left: 10px; text-decoration: none;
+.pclaude-header::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(235,82,2,.45) 0%, transparent 38%),
+      radial-gradient(circle at 88% 84%, rgba(235,82,2,.22) 0%, transparent 42%);
+    pointer-events: none;
 }
-.claudeai-widget-header .actions a:hover { color: #fff; text-decoration: underline; }
-.claudeai-widget-feed {
-    flex: 1; overflow-y: auto; padding: 12px 14px;
-    background: #fafafa;
+.pclaude-header-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; z-index: 1; }
+.pclaude-brand { display: flex; align-items: center; gap: 11px; }
+.pclaude-mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,.25);
 }
-.claudeai-widget-empty {
-    text-align: center; color: #777; font-size: 12px; padding: 30px 10px;
+.pclaude-mark svg { width: 20px; height: 20px; }
+.pclaude-title { font-weight: 700; font-size: 15px; line-height: 1.1; letter-spacing: -.01em; }
+.pclaude-subtitle {
+    font-size: 11px; color: #c8c8c8; margin-top: 3px;
+    display: flex; align-items: center; gap: 6px;
 }
-.claudeai-widget-empty h4 { margin: 0 0 6px; font-size: 14px; color: #303030; }
-.cw-bubble {
-    max-width: 88%; padding: 8px 12px; border-radius: 10px;
-    margin-bottom: 8px; font-size: 13px; line-height: 1.4;
+.pclaude-status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #2ecc71; box-shadow: 0 0 0 0 rgba(46,204,113,.6);
+    animation: pclaudeDot 2s ease-out infinite;
+}
+@keyframes pclaudeDot {
+    0%   { box-shadow: 0 0 0 0 rgba(46,204,113,.6); }
+    100% { box-shadow: 0 0 0 6px rgba(46,204,113,0); }
+}
+.pclaude-actions { display: flex; gap: 4px; align-items: center; position: relative; z-index: 1; }
+.pclaude-icon-btn {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: rgba(255,255,255,.08); border: none; color: #f3f3f3;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .15s, transform .15s;
+}
+.pclaude-icon-btn:hover { background: rgba(255,255,255,.18); }
+.pclaude-icon-btn:active { transform: scale(.94); }
+.pclaude-icon-btn svg { width: 14px; height: 14px; }
+
+/* ====================== Feed ====================== */
+.pclaude-feed {
+    flex: 1; overflow-y: auto; padding: 14px 16px;
+    background: var(--pclaude-feed);
+    scroll-behavior: smooth;
+    scrollbar-width: thin; scrollbar-color: #d4d4d4 transparent;
+}
+.pclaude-feed::-webkit-scrollbar { width: 8px; }
+.pclaude-feed::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 4px; }
+.pclaude-feed::-webkit-scrollbar-track { background: transparent; }
+
+.pclaude-empty {
+    text-align: center; padding: 36px 18px; color: var(--pclaude-muted);
+    animation: pclaudeFade .35s ease;
+}
+.pclaude-empty .pclaude-empty-mark {
+    width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 14px;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px rgba(235,82,2,.32);
+}
+.pclaude-empty .pclaude-empty-mark svg { width: 28px; height: 28px; color: #fff; }
+.pclaude-empty h3 { font-size: 16px; color: var(--pclaude-ink); margin: 0 0 6px; font-weight: 700; letter-spacing: -.01em; }
+.pclaude-empty p { font-size: 13px; line-height: 1.5; color: var(--pclaude-muted); margin: 0 0 14px; }
+.pclaude-suggest { display: grid; grid-template-columns: 1fr; gap: 6px; max-width: 320px; margin: 0 auto; }
+.pclaude-chip {
+    text-align: left; background: #fff; border: 1px solid var(--pclaude-border);
+    color: var(--pclaude-text); padding: 9px 12px; border-radius: 10px;
+    font-size: 12.5px; cursor: pointer; transition: all .15s ease;
+    display: flex; align-items: center; gap: 8px;
+}
+.pclaude-chip::before {
+    content: "→"; color: var(--pclaude-orange); font-weight: 700;
+    transition: transform .15s ease;
+}
+.pclaude-chip:hover { border-color: var(--pclaude-orange); background: #fff8f3; transform: translateY(-1px); }
+.pclaude-chip:hover::before { transform: translateX(2px); }
+
+@keyframes pclaudeFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pclaudeBubbleIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ====================== Bubbles ====================== */
+.pclaude-row { display: flex; gap: 8px; margin-bottom: 12px; animation: pclaudeBubbleIn .22s ease; }
+.pclaude-row.user { justify-content: flex-end; }
+.pclaude-row.user .pclaude-avatar { display: none; }
+.pclaude-avatar {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 11px; font-weight: 700;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f);
+    box-shadow: 0 2px 5px rgba(235,82,2,.28);
+    margin-top: 2px;
+}
+.pclaude-bubble {
+    max-width: 82%; padding: 10px 13px; border-radius: 14px;
+    font-size: 13.5px; line-height: 1.5;
     word-wrap: break-word; word-break: break-word;
 }
-.cw-bubble--user {
-    margin-left: auto; background: #303030; color: #fff;
-    border-bottom-right-radius: 2px;
+.pclaude-row.ai   .pclaude-bubble { background: #fff; border: 1px solid var(--pclaude-border); color: var(--pclaude-text); border-bottom-left-radius: 4px; }
+.pclaude-row.user .pclaude-bubble {
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f); color: #fff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 3px 10px rgba(20,20,20,.16);
 }
-.cw-bubble--ai {
-    background: #fff; border: 1px solid #e3e3e3; color: #303030;
-    border-bottom-left-radius: 2px;
+.pclaude-row.err  .pclaude-bubble { background: #fff5f5; border: 1px solid #f5c6c6; color: #b30000; }
+.pclaude-bubble pre {
+    background: #f5f5f5; padding: 8px 10px; border-radius: 6px;
+    font-size: 11.5px; overflow-x: auto; margin: 6px 0;
 }
-.cw-bubble--err {
-    background: #fff5f5; border: 1px solid #f5c6c6; color: #b30000;
+.pclaude-bubble code {
+    background: rgba(0,0,0,.05); padding: 1px 5px; border-radius: 3px;
+    font-size: 12px; font-family: 'JetBrains Mono', Menlo, monospace;
 }
-.cw-bubble pre {
-    background: #f5f5f5; padding: 6px; border-radius: 3px;
-    font-size: 11px; overflow-x: auto; margin: 6px 0;
+.pclaude-row.user .pclaude-bubble code { background: rgba(255,255,255,.18); color: #fff; }
+.pclaude-bubble img.attached {
+    max-width: 100%; border-radius: 8px; margin-top: 6px; display: block;
+    border: 1px solid rgba(255,255,255,.2);
 }
-.cw-bubble code {
-    background: #f5f5f5; padding: 1px 4px; border-radius: 2px;
-    font-size: 11px;
+.pclaude-bubble .meta {
+    margin-top: 8px; padding-top: 7px; border-top: 1px dashed #ececec;
+    font-size: 10.5px; color: var(--pclaude-muted);
+    font-family: 'JetBrains Mono', Menlo, monospace;
+    display: flex; gap: 8px; flex-wrap: wrap;
 }
-.cw-bubble .meta {
-    margin-top: 6px; font-size: 10px; color: #999;
-    font-family: Menlo, monospace;
+.pclaude-row.user .pclaude-bubble .meta { border-top-color: rgba(255,255,255,.15); color: rgba(255,255,255,.7); }
+
+/* Tool chips */
+.pclaude-tool {
+    margin: 4px 0 8px 36px; padding: 8px 12px; font-size: 12px;
+    background: #fff; border: 1px solid var(--pclaude-border);
+    border-left: 3px solid #5e7ce2; border-radius: 8px;
+    color: var(--pclaude-text); display: flex; align-items: center; gap: 8px;
+    animation: pclaudeBubbleIn .22s ease;
 }
-.cw-bubble img.attached {
-    max-width: 100%; border-radius: 4px; margin-top: 6px; display: block;
+.pclaude-tool code { color: #5e7ce2; font-weight: 600; font-size: 11.5px; font-family: 'JetBrains Mono', Menlo, monospace; }
+.pclaude-tool span { color: var(--pclaude-muted); flex: 1; }
+.pclaude-tool.err { border-left-color: #d93b3b; }
+
+/* Status / typing */
+.pclaude-typing {
+    display: inline-flex; gap: 4px; align-items: center; padding: 4px 0;
 }
-.cw-tool {
-    margin-bottom: 6px; padding: 6px 10px; font-size: 11px;
-    background: #fff; border-left: 3px solid #5e7ce2;
-    color: #555; border-radius: 0 4px 4px 0;
+.pclaude-typing span {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--pclaude-orange);
+    animation: pclaudeTyping 1.2s infinite;
 }
-.cw-tool code { color: #5e7ce2; font-weight: 600; }
-.cw-tool.cw-tool--err { border-left-color: #d93b3b; }
-.cw-dots span {
-    display: inline-block; width: 6px; height: 6px; margin: 0 2px;
-    background: #aaa; border-radius: 50%;
-    animation: cwblink 1.2s infinite;
+.pclaude-typing span:nth-child(2) { animation-delay: .15s; }
+.pclaude-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes pclaudeTyping {
+    0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+    40%           { opacity: 1;   transform: translateY(-3px); }
 }
-.cw-dots span:nth-child(2) { animation-delay: .2s; }
-.cw-dots span:nth-child(3) { animation-delay: .4s; }
-@keyframes cwblink { 0%, 80% { opacity: .3 } 40% { opacity: 1 } }
-.claudeai-widget-attachments {
-    display: none; gap: 6px; padding: 8px 12px;
-    background: #fff; border-top: 1px solid #eee;
+
+/* Attachment chips */
+.pclaude-attachments {
+    display: none; gap: 6px; padding: 8px 14px;
+    background: #fff; border-top: 1px solid var(--pclaude-border);
     flex-wrap: wrap; flex-shrink: 0;
 }
-.cw-att {
+.pclaude-att {
     display: flex; align-items: center; gap: 6px;
-    padding: 4px 8px; background: #fafafa;
-    border: 1px solid #e3e3e3; border-radius: 12px;
-    font-size: 11px; max-width: 200px;
+    padding: 4px 8px; background: #f7f6f3;
+    border: 1px solid var(--pclaude-border); border-radius: 12px;
+    font-size: 11.5px; max-width: 220px;
 }
-.cw-att img { width: 22px; height: 22px; object-fit: cover; border-radius: 3px; }
-.cw-att .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cw-att .rm {
-    background: none; border: none; color: #999; cursor: pointer;
+.pclaude-att img { width: 22px; height: 22px; object-fit: cover; border-radius: 4px; }
+.pclaude-att .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pclaude-att button {
+    background: none; border: none; color: var(--pclaude-muted); cursor: pointer;
     font-size: 14px; padding: 0; line-height: 1;
 }
-.cw-att .rm:hover { color: #d93b3b; }
-.claudeai-widget-form {
-    display: flex; gap: 6px; padding: 10px 12px;
-    border-top: 1px solid #e3e3e3; background: #fff; flex-shrink: 0;
+.pclaude-att button:hover { color: #d93b3b; }
+
+/* ====================== Composer ====================== */
+.pclaude-composer {
+    padding: 10px 12px 12px; background: #fff;
+    border-top: 1px solid var(--pclaude-border); flex-shrink: 0;
 }
-.claudeai-widget-form .attach-btn {
-    cursor: pointer; padding: 6px; color: #777;
+.pclaude-composer-inner {
+    display: flex; align-items: flex-end; gap: 6px;
+    background: #f7f6f3; border: 1px solid var(--pclaude-border);
+    border-radius: 14px; padding: 6px 6px 6px 8px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.pclaude-composer-inner:focus-within {
+    border-color: var(--pclaude-orange);
+    box-shadow: 0 0 0 3px rgba(235,82,2,.12);
+}
+.pclaude-attach {
+    width: 32px; height: 32px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
+    color: var(--pclaude-muted); cursor: pointer; transition: color .15s, background .15s;
+    flex-shrink: 0;
 }
-.claudeai-widget-form .attach-btn:hover { color: #eb5202; }
-.claudeai-widget-form textarea {
-    flex: 1; resize: none; min-height: 32px; max-height: 120px;
-    border: 1px solid #d4d4d4; border-radius: 4px;
-    padding: 6px 8px; font-size: 13px; font-family: inherit;
+.pclaude-attach:hover { color: var(--pclaude-orange); background: rgba(235,82,2,.08); }
+.pclaude-input {
+    flex: 1; resize: none; min-height: 36px; max-height: 140px;
+    border: none; background: transparent;
+    padding: 8px 4px; font-size: 13.5px; font-family: inherit;
+    color: var(--pclaude-text); outline: none;
 }
-.claudeai-widget-form button {
-    background: #eb5202; color: #fff; border: none;
-    padding: 0 14px; border-radius: 4px; cursor: pointer; font-weight: 600;
-    font-size: 12px; flex-shrink: 0;
+.pclaude-input::placeholder { color: #9a9a9a; }
+.pclaude-send {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f); color: #fff; border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(235,82,2,.28);
+    transition: transform .15s, box-shadow .15s;
+    flex-shrink: 0;
 }
-.claudeai-widget-form button:hover { background: #ba4002; }
-.claudeai-widget-form button:disabled { background: #ccc; cursor: not-allowed; }
-@media print { .claudeai-launcher, .claudeai-widget { display: none !important; } }
+.pclaude-send:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(235,82,2,.4); }
+.pclaude-send:active { transform: translateY(0); }
+.pclaude-send:disabled { background: #d4d4d4; cursor: not-allowed; box-shadow: none; transform: none; }
+.pclaude-send svg { width: 16px; height: 16px; }
+
+.pclaude-stop {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #fff; border: 1px solid #d93b3b; color: #d93b3b;
+    cursor: pointer; display: none; align-items: center; justify-content: center;
+    transition: background .15s;
+    flex-shrink: 0;
+}
+.pclaude-stop.is-active { display: flex; }
+.pclaude-stop:hover { background: #fff5f5; }
+.pclaude-stop svg { width: 12px; height: 12px; }
+.pclaude-composer.is-busy .pclaude-send { display: none; }
+.pclaude-composer-foot {
+    text-align: center; font-size: 10.5px; color: #9a9a9a;
+    padding-top: 6px; letter-spacing: .02em;
+}
+
+@media print { .pclaude-launcher, .pclaude-widget { display: none !important; } }
 </style>
 
 <button type="button"
-        class="claudeai-launcher"
-        id="claudeai-launcher-btn"
+        class="pclaude-launcher"
+        id="pclaude-launcher"
         title="<?= $escaper->escapeHtmlAttr(__('Ask Claude AI')) ?>"
         aria-label="<?= $escaper->escapeHtmlAttr(__('Open Ask Claude chat')) ?>"
         aria-expanded="false">
-    <span class="claudeai-launcher-tip"><?= $escaper->escapeHtml(__('Ask Claude AI')) ?></span>
+    <span class="pulse"></span>
+    <span class="pclaude-launcher-tip"><?= $escaper->escapeHtml(__('Ask Claude — your store assistant')) ?></span>
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        <circle cx="9" cy="10" r="1" fill="currentColor"/>
+        <circle cx="13" cy="10" r="1" fill="currentColor"/>
+        <circle cx="17" cy="10" r="1" fill="currentColor"/>
     </svg>
 </button>
 
-<div class="claudeai-widget" id="claudeai-widget" role="dialog" aria-label="<?= $escaper->escapeHtmlAttr(__('Ask Claude')) ?>">
-    <div class="claudeai-widget-resize" id="claudeai-widget-resize"
+<div class="pclaude-widget" id="pclaude-widget" role="dialog" aria-label="<?= $escaper->escapeHtmlAttr(__('Ask Claude')) ?>">
+    <div class="pclaude-resize" id="pclaude-resize"
          title="<?= $escaper->escapeHtmlAttr(__('Drag to resize')) ?>"></div>
-    <div class="claudeai-widget-header">
-        <div>
-            <div class="title"><?= $escaper->escapeHtml(__('Ask Claude AI')) ?></div>
-            <div class="meta">
-                <?= $escaper->escapeHtml($block->getModel()) ?>
-                <?php if ($block->isDryRun()): ?>
-                    · <?= $escaper->escapeHtml(__('Dry run')) ?>
-                <?php endif; ?>
+
+    <header class="pclaude-header">
+        <div class="pclaude-header-row">
+            <div class="pclaude-brand">
+                <div class="pclaude-mark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="pclaude-title"><?= $escaper->escapeHtml(__('Store Assistant')) ?></div>
+                    <div class="pclaude-subtitle">
+                        <span class="pclaude-status-dot"></span>
+                        <span><?= $escaper->escapeHtml($block->getModel()) ?></span>
+                        <?php if ($block->isDryRun()): ?>
+                            <span>· <?= $escaper->escapeHtml(__('Dry run')) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="pclaude-actions">
+                <button type="button" class="pclaude-icon-btn" id="pclaude-newchat"
+                        title="<?= $escaper->escapeHtmlAttr(__('Start new conversation')) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('New conversation')) ?>">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                </button>
+                <a href="<?= $escaper->escapeUrl($block->getFullChatUrl()) ?>" target="_blank"
+                   class="pclaude-icon-btn"
+                   title="<?= $escaper->escapeHtmlAttr(__('Open full page')) ?>"
+                   aria-label="<?= $escaper->escapeHtmlAttr(__('Open in full page')) ?>">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h6v6M14 10l7-7M9 21H3v-6M10 14l-7 7"/>
+                    </svg>
+                </a>
+                <button type="button" class="pclaude-icon-btn" id="pclaude-close"
+                        title="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Close chat')) ?>">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
             </div>
         </div>
-        <div class="actions">
-            <a href="<?= $escaper->escapeUrl($block->getFullChatUrl()) ?>" target="_blank"
-               title="<?= $escaper->escapeHtmlAttr(__('Open full page')) ?>">
-                <?= $escaper->escapeHtml(__('Full page ↗')) ?>
-            </a>
+    </header>
+
+    <div class="pclaude-feed" id="pclaude-feed">
+        <div class="pclaude-empty">
+            <div class="pclaude-empty-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>
+                </svg>
+            </div>
+            <h3><?= $escaper->escapeHtml(__('How can I help today?')) ?></h3>
+            <p><?= $escaper->escapeHtml(__('I can search products, manage orders, update prices, edit CMS pages — anything in your store.')) ?></p>
+            <div class="pclaude-suggest">
+                <button type="button" class="pclaude-chip" data-prompt="<?= $escaper->escapeHtmlAttr(__('Show me the 10 most recent orders')) ?>">
+                    <?= $escaper->escapeHtml(__('Show me the 10 most recent orders')) ?>
+                </button>
+                <button type="button" class="pclaude-chip" data-prompt="<?= $escaper->escapeHtmlAttr(__('Find low-stock products under 5 units')) ?>">
+                    <?= $escaper->escapeHtml(__('Find low-stock products under 5 units')) ?>
+                </button>
+                <button type="button" class="pclaude-chip" data-prompt="<?= $escaper->escapeHtmlAttr(__('How many third-party modules are installed?')) ?>">
+                    <?= $escaper->escapeHtml(__('How many third-party modules are installed?')) ?>
+                </button>
+            </div>
         </div>
     </div>
-    <div class="claudeai-widget-feed" id="cw-feed">
-        <div class="claudeai-widget-empty">
-            <h4><?= $escaper->escapeHtml(__('Hi! I\'m Claude.')) ?></h4>
-            <p><?= $escaper->escapeHtml(__('Ask anything about your store — search products, find customers, check stock, update prices in bulk.')) ?></p>
+
+    <div class="pclaude-attachments" id="pclaude-attachments"></div>
+
+    <form class="pclaude-composer" id="pclaude-form">
+        <div class="pclaude-composer-inner">
+            <label class="pclaude-attach" title="<?= $escaper->escapeHtmlAttr(__('Attach a file')) ?>">
+                <input type="file" id="pclaude-file"
+                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.json,.xml,.md,.log,.zip"
+                       hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                </svg>
+            </label>
+            <textarea id="pclaude-input" class="pclaude-input" rows="1"
+                      placeholder="<?= $escaper->escapeHtmlAttr(__('Ask anything about your store…')) ?>"></textarea>
+            <button type="button" class="pclaude-stop" id="pclaude-stop"
+                    title="<?= $escaper->escapeHtmlAttr(__('Stop')) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Stop generating')) ?>">
+                <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+            </button>
+            <button type="submit" class="pclaude-send" id="pclaude-send"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Send message')) ?>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+            </button>
         </div>
-    </div>
-    <div class="claudeai-widget-attachments" id="cw-attachments"></div>
-    <form class="claudeai-widget-form" id="cw-form">
-        <label class="attach-btn" title="<?= $escaper->escapeHtmlAttr(__('Attach a file')) ?>">
-            <input type="file" id="cw-file"
-                   accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.json,.xml,.md,.log,.zip"
-                   hidden>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"
-                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </label>
-        <textarea id="cw-input" rows="1"
-                  placeholder="<?= $escaper->escapeHtmlAttr(__('Ask Claude…')) ?>"></textarea>
-        <button type="submit" id="cw-send"><?= $escaper->escapeHtml(__('Send')) ?></button>
     </form>
 </div>
 
 <script>
 (function () {
     'use strict';
-    const SEND_URL   = <?= json_encode($block->getSendUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const STREAM_URL = <?= json_encode($block->getStreamUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const UPLOAD_URL = <?= json_encode($block->getUploadUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const FORM_KEY   = <?= json_encode($block->getFormKey(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
 
-    const launcherBtn = document.getElementById('claudeai-launcher-btn');
-    const widget      = document.getElementById('claudeai-widget');
-    const feed        = document.getElementById('cw-feed');
-    const input       = document.getElementById('cw-input');
-    const sendBtn     = document.getElementById('cw-send');
-    const form        = document.getElementById('cw-form');
-    const fileIn      = document.getElementById('cw-file');
-    const attBox      = document.getElementById('cw-attachments');
+    const launcherBtn = document.getElementById('pclaude-launcher');
+    const widget      = document.getElementById('pclaude-widget');
+    const closeBtn    = document.getElementById('pclaude-close');
+    const newchatBtn  = document.getElementById('pclaude-newchat');
+    const resizeGrip  = document.getElementById('pclaude-resize');
+    const feed        = document.getElementById('pclaude-feed');
+    const input       = document.getElementById('pclaude-input');
+    const sendBtn     = document.getElementById('pclaude-send');
+    const stopBtn     = document.getElementById('pclaude-stop');
+    const form        = document.getElementById('pclaude-form');
+    const composer    = form;
+    const fileIn      = document.getElementById('pclaude-file');
+    const attBox      = document.getElementById('pclaude-attachments');
 
     if (!launcherBtn || !widget) return;
 
     let conversation = [];
     let conversationId = '';
     let pendingAttachments = [];
+    let activeAbort = null;
 
     function toggle(open) {
         const willOpen = open !== undefined ? open : !widget.classList.contains('is-open');
         widget.classList.toggle('is-open', willOpen);
         launcherBtn.classList.toggle('is-open', willOpen);
         launcherBtn.setAttribute('aria-expanded', String(willOpen));
-        if (willOpen) setTimeout(() => input?.focus(), 50);
+        if (willOpen) setTimeout(() => input?.focus(), 60);
     }
-
     launcherBtn.addEventListener('click', () => toggle());
+    closeBtn?.addEventListener('click', () => toggle(false));
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape' && widget.classList.contains('is-open')) toggle(false);
     });
@@ -253,40 +492,51 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
         return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
-    function nearBottom() {
-        return (feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 60;
+    function nearBottom() { return (feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 60; }
+    let _stick = true;
+    feed.addEventListener('scroll', () => { _stick = nearBottom(); });
+    function scrollDown(force) {
+        if (force || _stick) feed.scrollTop = feed.scrollHeight;
     }
-    let _stickToBottom = true;
-    feed.addEventListener('scroll', () => { _stickToBottom = nearBottom(); });
-    function autoScroll(force) {
-        if (force || _stickToBottom) feed.scrollTop = feed.scrollHeight;
-    }
-    function clearEmpty() { const e = feed.querySelector('.claudeai-widget-empty'); if (e) e.remove(); }
+    function clearEmpty() { const e = feed.querySelector('.pclaude-empty'); if (e) e.remove(); }
+
     function bubble(role, html) {
         clearEmpty();
-        const wrap = document.createElement('div');
-        wrap.className = 'cw-bubble cw-bubble--' + role;
-        wrap.innerHTML = html;
-        feed.appendChild(wrap);
-        autoScroll();
-        return wrap;
-    }
-    function toolChip(name, summary, status) {
-        clearEmpty();
-        const wrap = document.createElement('div');
-        wrap.className = 'cw-tool' + (status === 'error' ? ' cw-tool--err' : '');
-        wrap.innerHTML = '<code>' + esc(name) + '</code> ' + esc(summary || '');
-        feed.appendChild(wrap);
-        autoScroll();
+        const row = document.createElement('div');
+        row.className = 'pclaude-row ' + role;
+        let inner = '';
+        if (role === 'ai') {
+            inner += '<div class="pclaude-avatar">C</div>';
+        }
+        inner += '<div class="pclaude-bubble">' + html + '</div>';
+        row.innerHTML = inner;
+        feed.appendChild(row);
+        scrollDown();
+        return row.querySelector('.pclaude-bubble');
     }
     function thinking() {
         clearEmpty();
-        const wrap = document.createElement('div');
-        wrap.className = 'cw-bubble cw-bubble--ai';
-        wrap.innerHTML = '<span class="cw-dots"><span></span><span></span><span></span></span>';
-        feed.appendChild(wrap);
-        autoScroll();
-        return wrap;
+        const row = document.createElement('div');
+        row.className = 'pclaude-row ai';
+        row.innerHTML = '<div class="pclaude-avatar">C</div>' +
+            '<div class="pclaude-bubble"><span class="pclaude-typing"><span></span><span></span><span></span></span></div>';
+        feed.appendChild(row);
+        scrollDown();
+        return row.querySelector('.pclaude-bubble');
+    }
+    function setStatus(el, text) {
+        if (!el) return;
+        el.innerHTML = '<span class="pclaude-typing"><span></span><span></span><span></span></span> ' +
+            '<span style="color:#707070;font-size:12.5px">' + esc(text) + '</span>';
+        scrollDown();
+    }
+    function toolChip(name, summary, status) {
+        const div = document.createElement('div');
+        div.className = 'pclaude-tool' + (status === 'error' ? ' err' : '');
+        div.innerHTML = '<code>' + esc(name) + '</code>' +
+            (summary ? '<span>' + esc(summary) + '</span>' : '');
+        feed.appendChild(div);
+        scrollDown();
     }
     function md(text) {
         let s = esc(text);
@@ -306,10 +556,9 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
             const thumb = a.preview_url
                 ? '<img src="' + esc(a.preview_url) + '" alt="">'
                 : '<span>' + (a.is_pdf ? '📄' : a.is_text ? '📝' : '📎') + '</span>';
-            return '<div class="cw-att">' + thumb +
+            return '<div class="pclaude-att">' + thumb +
                 '<span class="name">' + esc(a.name) + '</span>' +
-                '<button type="button" class="rm" data-rm="' + i + '">×</button>' +
-                '</div>';
+                '<button type="button" data-rm="' + i + '">×</button></div>';
         }).join('');
         attBox.querySelectorAll('[data-rm]').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -342,62 +591,51 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
             bubble('err', 'Could not upload that file.');
         }
     }
-    function setStatus(el, text) {
-        if (!el) return;
-        el.innerHTML = '<span class="cw-dots"><span></span><span></span><span></span></span> <em style="color:#777;font-style:normal;font-size:12px">' + esc(text) + '</em>';
-        autoScroll();
-    }
-
     async function send(message) {
         const attHtml = pendingAttachments.map(a => a.preview_url
             ? '<img class="attached" src="' + esc(a.preview_url) + '" alt="">'
-            : '<div style="margin-top:4px;font-size:11px;opacity:.8">📎 ' + esc(a.name) + '</div>'
+            : '<div style="margin-top:4px;font-size:11.5px;opacity:.85">📎 ' + esc(a.name) + '</div>'
         ).join('');
         bubble('user', esc(message) + attHtml);
-        _stickToBottom = true;
-        autoScroll(true);
-        const sentAttachments = pendingAttachments.slice();
+        _stick = true; scrollDown(true);
+        const sent = pendingAttachments.slice();
         pendingAttachments = [];
         renderAttachments();
         input.value = ''; input.style.height = 'auto';
-        sendBtn.disabled = true;
+        composer.classList.add('is-busy');
+        stopBtn.classList.add('is-active');
 
-        const apiAttachments = sentAttachments.map(a => ({
-            claude_block: a.claude_block,
-            path_note:    a.path_note,
-            name:         a.name,
-        }));
+        const apiAttachments = sent.map(a => ({ claude_block: a.claude_block, path_note: a.path_note, name: a.name }));
         const t = thinking();
         setStatus(t, 'Reading your message…');
 
+        const ctrl = new AbortController();
+        activeAbort = ctrl;
         let done = null;
         try {
             const resp = await fetch(STREAM_URL, {
-                method: 'POST', credentials: 'include',
+                method: 'POST', credentials: 'include', signal: ctrl.signal,
                 headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/event-stream' },
                 body: JSON.stringify({
                     message, attachments: apiAttachments, history: conversation,
                     conversation_id: conversationId, form_key: FORM_KEY,
                 }),
             });
-            if (!resp.ok || !resp.body) {
-                t.remove();
-                bubble('err', '<strong>Error:</strong> HTTP ' + resp.status);
-                return;
-            }
+            if (!resp.ok || !resp.body) { t.remove(); bubble('err', '<strong>Error:</strong> HTTP ' + resp.status); return; }
             const reader = resp.body.getReader();
             const decoder = new TextDecoder('utf-8');
             let buffer = '';
             const handle = (event, data) => {
-                if (event === 'thinking')      setStatus(t, data.message || 'Thinking…');
-                else if (event === 'tool_start') setStatus(t, 'Calling tool: ' + (data.name || ''));
+                if (event === 'thinking')        setStatus(t, data.message || 'Thinking…');
+                else if (event === 'tool_start') setStatus(t, 'Calling ' + (data.name || ''));
                 else if (event === 'tool_done') {
-                    const summary = (data.summary || '').slice(0, 100);
-                    const cls = data.status === 'error' ? ' cw-tool--err' : '';
-                    t.insertAdjacentHTML('beforebegin',
-                        '<div class="cw-tool' + cls + '">' +
-                        '<code>' + esc(data.name) + '</code> ' + esc(summary) +
-                        '</div>');
+                    const summary = (data.summary || '').slice(0, 110);
+                    t.parentElement.insertAdjacentElement('beforebegin', (() => {
+                        const d = document.createElement('div');
+                        d.className = 'pclaude-tool' + (data.status === 'error' ? ' err' : '');
+                        d.innerHTML = '<code>' + esc(data.name) + '</code><span>' + esc(summary) + '</span>';
+                        return d;
+                    })());
                     setStatus(t, 'Got results — figuring out next step…');
                 }
                 else if (event === 'writing_reply') setStatus(t, 'Writing the reply…');
@@ -413,8 +651,7 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
                 buffer += decoder.decode(value, { stream: true });
                 let idx;
                 while ((idx = buffer.indexOf('\n\n')) !== -1) {
-                    const chunk = buffer.slice(0, idx);
-                    buffer = buffer.slice(idx + 2);
+                    const chunk = buffer.slice(0, idx); buffer = buffer.slice(idx + 2);
                     let evt = 'message', payload = '';
                     for (const line of chunk.split('\n')) {
                         if (line.startsWith('event:')) evt = line.slice(6).trim();
@@ -425,7 +662,6 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
             }
             if (!done) { t.remove(); return; }
             t.remove();
-
             conversationId = done.conversation_id || conversationId;
             conversation = done.conversation || conversation;
             const aiBubble = bubble('ai', md(done.text || '(no reply)'));
@@ -440,15 +676,35 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
             }
         } catch (e) {
             t.remove();
-            bubble('err', '<strong>Network error:</strong> ' + esc(e.message));
+            if (e.name === 'AbortError') {
+                bubble('ai', '<em style="color:#b30000">Stopped.</em>');
+            } else {
+                bubble('err', '<strong>Network error:</strong> ' + esc(e.message));
+            }
         } finally {
-            sendBtn.disabled = false;
+            activeAbort = null;
+            composer.classList.remove('is-busy');
+            stopBtn.classList.remove('is-active');
             input.focus();
         }
     }
+    stopBtn?.addEventListener('click', () => {
+        if (activeAbort) { activeAbort.abort(); }
+    });
+    newchatBtn?.addEventListener('click', () => {
+        if (activeAbort) activeAbort.abort();
+        conversation = []; conversationId = '';
+        pendingAttachments = []; renderAttachments();
+        feed.innerHTML = '<div class="pclaude-empty">' +
+            '<div class="pclaude-empty-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>' +
+            '<h3>How can I help today?</h3>' +
+            '<p>Fresh chat — your previous one is saved under Conversations.</p></div>';
+        input.focus();
+    });
+
     input?.addEventListener('input', () => {
         input.style.height = 'auto';
-        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+        input.style.height = Math.min(input.scrollHeight, 140) + 'px';
     });
     function shouldSend() { return input.value.trim() !== '' || pendingAttachments.length > 0; }
     input?.addEventListener('keydown', e => {
@@ -466,59 +722,55 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
         if (f) uploadFile(f);
         e.target.value = '';
     });
+    document.querySelectorAll('.pclaude-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const p = chip.dataset.prompt || '';
+            input.value = p; input.dispatchEvent(new Event('input'));
+            send(p);
+        });
+    });
 
-    // ---------- Free-form resize from the top-left corner ----------
-    const SIZE_KEY = 'claudeai_widget_size_v1';
-    const resizeHandle = document.getElementById('claudeai-widget-resize');
-
-    function applySavedSize() {
+    // ---------- Resize ----------
+    const SIZE_KEY = 'pclaude_size_v2';
+    function applySaved() {
         try {
             const raw = localStorage.getItem(SIZE_KEY);
             if (!raw) return;
             const s = JSON.parse(raw);
             if (s && Number.isFinite(s.w) && Number.isFinite(s.h)) {
-                widget.style.width  = Math.max(280, s.w) + 'px';
-                widget.style.height = Math.max(320, s.h) + 'px';
+                widget.style.width  = Math.max(320, s.w) + 'px';
+                widget.style.height = Math.max(380, s.h) + 'px';
             }
-        } catch (e) { /* ignore */ }
+        } catch {}
     }
-    function saveSize(w, h) {
-        try { localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h })); } catch (e) { /* ignore */ }
-    }
-    applySavedSize();
+    function saveSize(w, h) { try { localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h })); } catch {} }
+    applySaved();
 
-    let resizing = null;
-    resizeHandle?.addEventListener('pointerdown', (e) => {
+    let rs = null;
+    resizeGrip?.addEventListener('pointerdown', (e) => {
         e.preventDefault();
-        const rect = widget.getBoundingClientRect();
-        // Pin the widget's BOTTOM-RIGHT corner so it grows toward the top-left.
-        widget.style.bottom = (window.innerHeight - rect.bottom) + 'px';
-        widget.style.right  = (window.innerWidth  - rect.right)  + 'px';
-        resizing = {
-            startX: e.clientX, startY: e.clientY,
-            startW: rect.width, startH: rect.height,
-            anchorRight: rect.right, anchorBottom: rect.bottom,
-        };
-        document.body.classList.add('claudeai-resizing');
-        resizeHandle.setPointerCapture(e.pointerId);
+        const r = widget.getBoundingClientRect();
+        widget.style.bottom = (window.innerHeight - r.bottom) + 'px';
+        widget.style.right  = (window.innerWidth  - r.right)  + 'px';
+        rs = { startX: e.clientX, startY: e.clientY, ar: r.right, ab: r.bottom };
+        document.body.classList.add('pclaude-resizing');
+        resizeGrip.setPointerCapture(e.pointerId);
     });
-    resizeHandle?.addEventListener('pointermove', (e) => {
-        if (!resizing) return;
-        // Dragging top-left → wider/taller as we move up-left.
-        const w = Math.max(280, Math.min(window.innerWidth  - 24, resizing.anchorRight  - e.clientX));
-        const h = Math.max(320, Math.min(window.innerHeight - 24, resizing.anchorBottom - e.clientY));
+    resizeGrip?.addEventListener('pointermove', (e) => {
+        if (!rs) return;
+        const w = Math.max(320, Math.min(window.innerWidth  - 24, rs.ar - e.clientX));
+        const h = Math.max(380, Math.min(window.innerHeight - 24, rs.ab - e.clientY));
         widget.style.width  = w + 'px';
         widget.style.height = h + 'px';
     });
     function endResize(e) {
-        if (!resizing) return;
-        const rect = widget.getBoundingClientRect();
-        saveSize(rect.width, rect.height);
-        resizing = null;
-        document.body.classList.remove('claudeai-resizing');
-        try { resizeHandle.releasePointerCapture(e.pointerId); } catch {}
+        if (!rs) return;
+        const r = widget.getBoundingClientRect();
+        saveSize(r.width, r.height); rs = null;
+        document.body.classList.remove('pclaude-resizing');
+        try { resizeGrip.releasePointerCapture(e.pointerId); } catch {}
     }
-    resizeHandle?.addEventListener('pointerup',     endResize);
-    resizeHandle?.addEventListener('pointercancel', endResize);
+    resizeGrip?.addEventListener('pointerup',     endResize);
+    resizeGrip?.addEventListener('pointercancel', endResize);
 })();
 </script>

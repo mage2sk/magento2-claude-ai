@@ -81,6 +81,11 @@ class Stream extends Action implements HttpPostActionInterface, CsrfAwareActionI
         @ini_set('zlib.output_compression', '0');
         @ini_set('output_buffering', 'off');
         @ini_set('implicit_flush', '1');
+        // Make connection_aborted() reliably flip to true when the client
+        // disconnects mid-stream (Stop button → AbortController cancels
+        // the fetch). Without this, PHP only notices on the next echo and
+        // by then the orchestrator has already burned more tokens.
+        @ignore_user_abort(false);
         while (ob_get_level() > 0) { @ob_end_clean(); }
 
         header('Content-Type: text/event-stream; charset=utf-8');

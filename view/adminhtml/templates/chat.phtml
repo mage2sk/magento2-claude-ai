@@ -95,6 +95,13 @@ $recent = $block->getRecentConversations(40);
                           rows="1"
                           placeholder="<?= $escaper->escapeHtmlAttr(__('Ask anything about your store…')) ?>"
                           <?= !$block->isConfigured() ? 'disabled' : '' ?>></textarea>
+                <button type="button"
+                        class="action-secondary claudeai-stop"
+                        id="claudeai-stop"
+                        title="<?= $escaper->escapeHtmlAttr(__('Stop generating — won\'t spend further tokens')) ?>"
+                        style="display:none">
+                    <span>■ <?= $escaper->escapeHtml(__('Stop')) ?></span>
+                </button>
                 <button type="submit"
                         class="action-primary"
                         id="claudeai-send"
@@ -266,6 +273,10 @@ $recent = $block->getRecentConversations(40);
         autoScroll();
     }
 
+    let activeAbort = null;
+    const stopBtn = document.getElementById('claudeai-stop');
+    stopBtn?.addEventListener('click', () => { if (activeAbort) activeAbort.abort(); });
+
     async function streamSend(message, sentAttachments) {
         const apiAttachments = sentAttachments.map(a => ({
             claude_block: a.claude_block,
@@ -275,8 +286,13 @@ $recent = $block->getRecentConversations(40);
         const t = thinking();
         setStatus(t, '<?= $escaper->escapeJs(__('Reading your message…')) ?>');
 
+        const ctrl = new AbortController();
+        activeAbort = ctrl;
+        sendBtn.style.display = 'none';
+        if (stopBtn) stopBtn.style.display = '';
+
         const resp = await fetch(STREAM_URL, {
-            method: 'POST', credentials: 'include',
+            method: 'POST', credentials: 'include', signal: ctrl.signal,
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/event-stream' },
             body: JSON.stringify({
                 message,
@@ -356,6 +372,13 @@ $recent = $block->getRecentConversations(40);
         const lastBody = feed.querySelector('.claudeai-bubble--ai:last-child .claudeai-bubble-body');
         if (lastBody) lastBody.insertAdjacentHTML('beforeend', '<div class="claudeai-meta">' + meta + '</div>');
     }
+    // Reset the send/stop button states whether the stream completed
+    // normally, errored, or was aborted.
+    function resetSendUi() {
+        activeAbort = null;
+        sendBtn.style.display = '';
+        if (stopBtn) stopBtn.style.display = 'none';
+    }
 
     async function send(message) {
         // Render the user bubble — include thumbnails of attached images.
@@ -376,9 +399,14 @@ $recent = $block->getRecentConversations(40);
         try {
             await streamSend(message, sentAttachments);
         } catch (e) {
-            bubble('err', '<strong><?= $escaper->escapeJs(__('Network error:')) ?></strong> ' + esc(e.message));
+            if (e.name === 'AbortError') {
+                bubble('ai', '<em style="color:#b30000"><?= $escaper->escapeJs(__('Stopped — no further tokens spent.')) ?></em>');
+            } else {
+                bubble('err', '<strong><?= $escaper->escapeJs(__('Network error:')) ?></strong> ' + esc(e.message));
+            }
         } finally {
             sendBtn.disabled = false;
+            resetSendUi();
             input.focus();
         }
     }

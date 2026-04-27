@@ -55,11 +55,15 @@ class MessageStore
                 return;
             }
 
-            $in    = (int) ($usage['input_tokens']      ?? 0);
-            $out   = (int) ($usage['output_tokens']     ?? 0);
-            $cache = (int) ($usage['cache_read_tokens'] ?? 0);
-            $cost  = ($in + $out + $cache) > 0
-                ? $this->pricing->costFor($this->config->getModel(), $in, $out, $cache)
+            $in        = (int) ($usage['input_tokens']      ?? 0);
+            $out       = (int) ($usage['output_tokens']     ?? 0);
+            $cacheRead = (int) ($usage['cache_read_tokens'] ?? 0);
+            $cacheWrite = (int) ($usage['cache_write_tokens'] ?? 0);
+            // Include cache_creation tokens (1.25x input rate) — without
+            // this the per-conversation cost shown in admin under-counts
+            // by ~half on cache-heavy chats.
+            $cost = ($in + $out + $cacheRead + $cacheWrite) > 0
+                ? $this->pricing->costFor($this->config->getModel(), $in, $out, $cacheRead, $cacheWrite)
                 : null;
 
             $userId = null;
@@ -80,10 +84,11 @@ class MessageStore
                     'role'              => $role,
                     'surface'           => $surface,
                     'content_json'      => $contentJson,
-                    'input_tokens'      => $in ?: null,
-                    'output_tokens'     => $out ?: null,
-                    'cache_read_tokens' => $cache ?: null,
-                    'cost_usd'          => $cost,
+                    'input_tokens'       => $in ?: null,
+                    'output_tokens'      => $out ?: null,
+                    'cache_read_tokens'  => $cacheRead ?: null,
+                    'cache_write_tokens' => $cacheWrite ?: null,
+                    'cost_usd'           => $cost,
                     'model'             => $this->config->getModel(),
                     'admin_user_id'     => $userId,
                 ]

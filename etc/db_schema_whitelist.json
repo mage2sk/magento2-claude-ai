@@ -104,6 +104,7 @@
             "input_tokens": true,
             "output_tokens": true,
             "cache_read_tokens": true,
+            "cache_write_tokens": true,
             "cost_usd": true,
             "model": true,
             "admin_user_id": true,

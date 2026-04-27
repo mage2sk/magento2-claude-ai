@@ -161,6 +161,8 @@
         <column xsi:type="int" name="input_tokens"  unsigned="true" nullable="true"/>
         <column xsi:type="int" name="output_tokens" unsigned="true" nullable="true"/>
         <column xsi:type="int" name="cache_read_tokens" unsigned="true" nullable="true"/>
+        <column xsi:type="int" name="cache_write_tokens" unsigned="true" nullable="true"
+                comment="cache_creation_input_tokens — 1.25x input rate"/>
         <column xsi:type="decimal" name="cost_usd" scale="6" precision="10" nullable="true"/>
         <column xsi:type="varchar" name="model" length="64" nullable="true"/>
         <column xsi:type="int" name="admin_user_id" unsigned="true" nullable="true"/>

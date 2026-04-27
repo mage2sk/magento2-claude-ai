@@ -97,6 +97,11 @@
                     <label>Search products</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="manage_products" translate="label comment" type="select" sortOrder="15" showInDefault="1">
+                    <label>Create / update / clone products</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Full-surface product writes — name, description, attributes, categories, etc.</comment>
+                </field>
                 <field id="update_product_price" translate="label" type="select" sortOrder="20" showInDefault="1">
                     <label>Update product prices</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -118,6 +123,26 @@
                     <label>Order management (search, hold, cancel, comment)</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Search + lookup + hold/unhold/cancel/comment. Cancel always requires explicit confirmation.</comment>
+                </field>
+                <field id="manage_categories" translate="label comment" type="select" sortOrder="46" showInDefault="1">
+                    <label>Manage categories (create / update / tree / assign)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>No deletes — set is_active=false to hide a category instead.</comment>
+                </field>
+                <field id="manage_cms_pages" translate="label comment" type="select" sortOrder="47" showInDefault="1">
+                    <label>Manage CMS pages</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>List / get / create / update CMS pages. No deletes — disable instead.</comment>
+                </field>
+                <field id="manage_cms_blocks" translate="label comment" type="select" sortOrder="48" showInDefault="1">
+                    <label>Manage CMS blocks</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>List / get / create / update CMS blocks. No deletes — disable instead.</comment>
+                </field>
+                <field id="database_query" translate="label comment" type="select" sortOrder="49" showInDefault="1">
+                    <label>Read-only database query (SELECT / SHOW / EXPLAIN)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Lets the AI inspect ANY table — Magento core OR third-party modules — for read-only diagnostics. INSERT/UPDATE/DELETE etc. are rejected. Result rows capped at 100.</comment>
                 </field>
                 <field id="store_insights" translate="label" type="select" sortOrder="50" showInDefault="1">
                     <label>Customer &amp; order insights (aggregates)</label>

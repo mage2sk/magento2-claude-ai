@@ -9,17 +9,22 @@
         <arguments>
             <argument name="tools" xsi:type="array">
                 <item name="get_products"            xsi:type="object">Panth\ClaudeAi\Model\Tool\GetProducts</item>
+                <item name="manage_products"         xsi:type="object">Panth\ClaudeAi\Model\Tool\ManageProducts</item>
                 <item name="update_product_price"    xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateProductPrice</item>
                 <item name="update_product_status"   xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateProductStatus</item>
                 <item name="update_inventory"        xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateInventory</item>
+                <item name="manage_categories"       xsi:type="object">Panth\ClaudeAi\Model\Tool\ManageCategories</item>
                 <item name="customers"               xsi:type="object">Panth\ClaudeAi\Model\Tool\Customers</item>
                 <item name="orders"                  xsi:type="object">Panth\ClaudeAi\Model\Tool\Orders</item>
+                <item name="manage_cms_pages"        xsi:type="object">Panth\ClaudeAi\Model\Tool\ManageCmsPages</item>
+                <item name="manage_cms_blocks"       xsi:type="object">Panth\ClaudeAi\Model\Tool\ManageCmsBlocks</item>
                 <item name="store_insights"          xsi:type="object">Panth\ClaudeAi\Model\Tool\StoreInsights</item>
                 <item name="get_low_stock_products"  xsi:type="object">Panth\ClaudeAi\Model\Tool\LowStock</item>
                 <item name="store_info"              xsi:type="object">Panth\ClaudeAi\Model\Tool\StoreInfo</item>
                 <item name="update_config"           xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateConfig</item>
                 <item name="set_store_logo"          xsi:type="object">Panth\ClaudeAi\Model\Tool\SetStoreLogo</item>
                 <item name="get_modules"             xsi:type="object">Panth\ClaudeAi\Model\Tool\GetModules</item>
+                <item name="database_query"          xsi:type="object">Panth\ClaudeAi\Model\Tool\DatabaseQuery</item>
                 <item name="cache_reindex"           xsi:type="object">Panth\ClaudeAi\Model\Tool\CacheReindex</item>
                 <item name="restore_checkpoint"      xsi:type="object">Panth\ClaudeAi\Model\Tool\RestoreCheckpoint</item>
             </argument>
