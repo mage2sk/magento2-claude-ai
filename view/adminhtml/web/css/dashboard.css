@@ -118,12 +118,18 @@
    needs a fixed-height feed; everything else inherits Magento defaults. */
 .claudeai-chat {
     display: grid; grid-template-columns: 240px 1fr; gap: 12px;
-    margin-top: 12px; min-height: 480px;
+    margin-top: 12px;
+    /* Fixed viewport-relative height so .claudeai-chat-feed has a real
+       overflow-y scroll — without a height ceiling here, flex:1 inside
+       .claudeai-chat-main expands to fit content and the page scrolls
+       instead of the feed, which is what was forcing the user to scroll
+       manually after each new message. */
+    height: calc(100vh - 220px); min-height: 480px;
 }
 .claudeai-chat-side, .claudeai-chat-main {
     background: #fff; border: 1px solid #e3e3e3; border-radius: 3px;
 }
-.claudeai-chat-side { padding: 14px; overflow-y: auto; max-height: 600px; }
+.claudeai-chat-side { padding: 14px; overflow-y: auto; }
 .claudeai-side-head {
     display: flex; align-items: center; justify-content: space-between;
     margin: 0 0 8px;
@@ -191,7 +197,8 @@
 .claudeai-chat-chip:hover { background: #fff3e6; border-color: #eb5202; }
 .claudeai-chat-feed {
     flex: 1; overflow-y: auto; padding: 14px;
-    background: #faf8f6; min-height: 320px;
+    background: #faf8f6; min-height: 0;
+    scroll-behavior: smooth;
 }
 .claudeai-chat-empty { text-align: center; color: #777; padding: 60px 20px; }
 .claudeai-chat-empty h3 { font-size: 16px; color: #303030; margin: 0 0 6px; }

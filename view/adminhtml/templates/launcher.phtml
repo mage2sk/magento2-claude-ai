@@ -253,6 +253,14 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
         return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
+    function nearBottom() {
+        return (feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 60;
+    }
+    let _stickToBottom = true;
+    feed.addEventListener('scroll', () => { _stickToBottom = nearBottom(); });
+    function autoScroll(force) {
+        if (force || _stickToBottom) feed.scrollTop = feed.scrollHeight;
+    }
     function clearEmpty() { const e = feed.querySelector('.claudeai-widget-empty'); if (e) e.remove(); }
     function bubble(role, html) {
         clearEmpty();
@@ -260,7 +268,7 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
         wrap.className = 'cw-bubble cw-bubble--' + role;
         wrap.innerHTML = html;
         feed.appendChild(wrap);
-        feed.scrollTop = feed.scrollHeight;
+        autoScroll();
         return wrap;
     }
     function toolChip(name, summary, status) {
@@ -269,7 +277,7 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
         wrap.className = 'cw-tool' + (status === 'error' ? ' cw-tool--err' : '');
         wrap.innerHTML = '<code>' + esc(name) + '</code> ' + esc(summary || '');
         feed.appendChild(wrap);
-        feed.scrollTop = feed.scrollHeight;
+        autoScroll();
     }
     function thinking() {
         clearEmpty();
@@ -277,7 +285,7 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
         wrap.className = 'cw-bubble cw-bubble--ai';
         wrap.innerHTML = '<span class="cw-dots"><span></span><span></span><span></span></span>';
         feed.appendChild(wrap);
-        feed.scrollTop = feed.scrollHeight;
+        autoScroll();
         return wrap;
     }
     function md(text) {
@@ -337,6 +345,7 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
     function setStatus(el, text) {
         if (!el) return;
         el.innerHTML = '<span class="cw-dots"><span></span><span></span><span></span></span> <em style="color:#777;font-style:normal;font-size:12px">' + esc(text) + '</em>';
+        autoScroll();
     }
 
     async function send(message) {
@@ -345,6 +354,8 @@ body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
             : '<div style="margin-top:4px;font-size:11px;opacity:.8">📎 ' + esc(a.name) + '</div>'
         ).join('');
         bubble('user', esc(message) + attHtml);
+        _stickToBottom = true;
+        autoScroll(true);
         const sentAttachments = pendingAttachments.slice();
         pendingAttachments = [];
         renderAttachments();

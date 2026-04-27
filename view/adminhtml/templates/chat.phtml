@@ -142,6 +142,19 @@ $recent = $block->getRecentConversations(40);
         return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
             .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
+    // Smart auto-scroll — only follow the latest content if the user is
+    // already near the bottom. Don't yank them down if they scrolled up
+    // to read older messages mid-conversation.
+    function nearBottom() {
+        return (feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 80;
+    }
+    let _stickToBottom = true;
+    feed.addEventListener('scroll', () => { _stickToBottom = nearBottom(); });
+    function autoScroll(force) {
+        if (force || _stickToBottom) {
+            autoScroll();
+        }
+    }
     function clearEmpty() { const e = feed.querySelector('.claudeai-chat-empty'); if (e) e.remove(); }
     function bubble(role, html) {
         clearEmpty();
@@ -149,7 +162,7 @@ $recent = $block->getRecentConversations(40);
         wrap.className = 'claudeai-bubble claudeai-bubble--' + role;
         wrap.innerHTML = '<div class="claudeai-bubble-body">' + html + '</div>';
         feed.appendChild(wrap);
-        feed.scrollTop = feed.scrollHeight;
+        autoScroll();
         return wrap;
     }
     function toolChip(name, summary, status) {
@@ -158,7 +171,7 @@ $recent = $block->getRecentConversations(40);
         wrap.className = 'claudeai-tool-call' + (status === 'error' ? ' claudeai-tool-call--err' : '');
         wrap.innerHTML = '<code>' + esc(name) + '</code><span>' + esc(summary) + '</span>';
         feed.appendChild(wrap);
-        feed.scrollTop = feed.scrollHeight;
+        autoScroll();
     }
     function thinking() {
         clearEmpty();
@@ -166,7 +179,7 @@ $recent = $block->getRecentConversations(40);
         wrap.className = 'claudeai-bubble claudeai-bubble--ai';
         wrap.innerHTML = '<div class="claudeai-bubble-body"><span class="claudeai-dots"><span></span><span></span><span></span></span></div>';
         feed.appendChild(wrap);
-        feed.scrollTop = feed.scrollHeight;
+        autoScroll();
         return wrap;
     }
     function md(text) {
@@ -250,6 +263,7 @@ $recent = $block->getRecentConversations(40);
         body.innerHTML = '<span class="claudeai-status-line">' +
             '<span class="claudeai-dots"><span></span><span></span><span></span></span>' +
             ' <em>' + esc(text) + '</em></span>';
+        autoScroll();
     }
 
     async function streamSend(message, sentAttachments) {
@@ -295,6 +309,7 @@ $recent = $block->getRecentConversations(40);
                     '<code>' + esc(data.name) + '</code><span>' + esc(summary) + '</span>' +
                     '</div>');
                 setStatus(t, '<?= $escaper->escapeJs(__('Got results — thinking about what to do next…')) ?>');
+                autoScroll();
             } else if (event === 'writing_reply') {
                 setStatus(t, '<?= $escaper->escapeJs(__('Writing the reply…')) ?>');
             } else if (event === 'done') {
@@ -349,6 +364,10 @@ $recent = $block->getRecentConversations(40);
             return '<div class="claudeai-bubble-att-chip">📎 ' + esc(a.name) + '</div>';
         }).join('');
         bubble('user', esc(message) + attHtml);
+        // After the user sends, always pin to bottom — overrides any
+        // earlier upward scroll so the new exchange is in view.
+        _stickToBottom = true;
+        autoScroll(true);
         const sentAttachments = pendingAttachments.slice();
         pendingAttachments = [];
         renderAttachments();
