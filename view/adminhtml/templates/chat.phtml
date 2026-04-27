@@ -428,6 +428,61 @@ $recent = $block->getRecentConversations(40);
     }
     document.getElementById('claudeai-new-chat')?.addEventListener('click', newChat);
 
+    // Render a single tool_use block as a friendly chip + collapsed details.
+    function renderToolUseChip(name, input) {
+        const argSummary = formatToolInput(input);
+        const inputJson = JSON.stringify(input || {}, null, 2);
+        const details = '<details class="claudeai-tool-details"><summary>' +
+            '<code>' + esc(name) + '</code>' +
+            (argSummary ? '<span class="claudeai-tool-args">(' + esc(argSummary) + ')</span>' : '') +
+            '</summary><pre>' + esc(inputJson) + '</pre></details>';
+        feed.insertAdjacentHTML('beforeend', '<div class="claudeai-tool-call">' + details + '</div>');
+        autoScroll();
+    }
+    // Render a tool_result block — pull the human summary if present, hide
+    // the raw JSON behind a click-to-expand.
+    function renderToolResultChip(content) {
+        let parsed = null;
+        let raw = '';
+        if (typeof content === 'string') {
+            raw = content;
+            try { parsed = JSON.parse(content); } catch (e) { parsed = null; }
+        } else if (Array.isArray(content)) {
+            raw = content.map(x => (x && x.text) || '').join(' ');
+            try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+        } else if (content && typeof content === 'object') {
+            parsed = content; raw = JSON.stringify(content);
+        }
+        const status = (parsed && parsed.status) || 'success';
+        const summary = parsed
+            ? (parsed.summary || parsed.message || ('returned ' + (parsed.affected_count != null ? parsed.affected_count + ' items' : 'data')))
+            : mb(raw, 100);
+        const cls = status === 'error' ? ' claudeai-tool-call--err' : '';
+        const pretty = parsed ? JSON.stringify(parsed, null, 2) : raw;
+        const html = '<div class="claudeai-tool-call' + cls + '">' +
+            '<details class="claudeai-tool-details">' +
+            '<summary><span class="claudeai-tool-result-icon">' + (status === 'error' ? '⚠️' : '✓') + '</span> ' +
+            '<span class="claudeai-tool-result-summary">' + esc(summary) + '</span></summary>' +
+            '<pre>' + esc(pretty) + '</pre></details></div>';
+        feed.insertAdjacentHTML('beforeend', html);
+        autoScroll();
+    }
+    function formatToolInput(input) {
+        if (!input || typeof input !== 'object') return '';
+        const parts = [];
+        for (const [k, v] of Object.entries(input)) {
+            if (parts.length >= 3) { parts.push('…'); break; }
+            const s = typeof v === 'string'
+                ? '"' + mb(v, 24) + '"'
+                : Array.isArray(v) ? '[' + v.length + ']'
+                : typeof v === 'object' && v !== null ? '{…}'
+                : String(v);
+            parts.push(k + '=' + s);
+        }
+        return parts.join(', ');
+    }
+    function mb(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; }
+
     // Replay one stored conversation into the feed in lightweight bubble form.
     function replay(messages) {
         feed.innerHTML = '';
@@ -444,17 +499,14 @@ $recent = $block->getRecentConversations(40);
                 } else if (b.type === 'document') {
                     bubble(role, '<div class="claudeai-bubble-att-chip">📄 attached document</div>');
                 } else if (b.type === 'tool_use') {
-                    toolChip(b.name || 'tool', '(replayed call)', 'success');
+                    renderToolUseChip(b.name || 'tool', b.input || {});
                 } else if (b.type === 'tool_result') {
-                    const txt = typeof b.content === 'string' ? b.content
-                              : Array.isArray(b.content) ? b.content.map(x => x.text || '').join(' ')
-                              : '';
-                    if (txt) toolChip('result', mb(txt, 80), 'success');
+                    renderToolResultChip(b.content);
                 }
             }
         }
+        autoScroll(true);
     }
-    function mb(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; }
 
     async function loadConversation(cid) {
         if (!cid) return;

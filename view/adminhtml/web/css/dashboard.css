@@ -119,15 +119,16 @@
 .claudeai-chat {
     display: grid; grid-template-columns: 240px 1fr; gap: 12px;
     margin-top: 12px;
-    /* Fixed viewport-relative height so .claudeai-chat-feed has a real
-       overflow-y scroll — without a height ceiling here, flex:1 inside
-       .claudeai-chat-main expands to fit content and the page scrolls
-       instead of the feed, which is what was forcing the user to scroll
-       manually after each new message. */
-    height: calc(100vh - 220px); min-height: 480px;
+    /* Hard-bound the chat surface to the viewport. Without this, the feed
+       (flex:1 + overflow-y:auto) has no height ceiling to overflow against
+       and the PAGE scrolls instead, which makes every new message vanish
+       below the fold. */
+    height: calc(100vh - 220px); min-height: 480px; max-height: calc(100vh - 220px);
+    overflow: hidden;
 }
 .claudeai-chat-side, .claudeai-chat-main {
     background: #fff; border: 1px solid #e3e3e3; border-radius: 3px;
+    min-height: 0;        /* lets the grid item shrink to feed's overflow */
 }
 .claudeai-chat-side { padding: 14px; overflow-y: auto; }
 .claudeai-side-head {
@@ -175,6 +176,36 @@
 .claudeai-status-line em {
     font-style: normal;
 }
+/* Tool chip with click-to-expand details — replaces the raw JSON dump. */
+.claudeai-tool-details { margin: 0; }
+.claudeai-tool-details > summary {
+    cursor: pointer; list-style: none;
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 10px; font-size: 12px; line-height: 1.4;
+    background: #fffaf6; border-left: 3px solid #5e7ce2;
+    border-radius: 0 3px 3px 0;
+}
+.claudeai-tool-details > summary::-webkit-details-marker { display: none; }
+.claudeai-tool-call--err .claudeai-tool-details > summary { border-left-color: #d93b3b; background: #fff5f5; }
+.claudeai-tool-details > summary code {
+    color: #5e7ce2; font-weight: 600; font-size: 11px;
+    font-family: Menlo, monospace;
+}
+.claudeai-tool-args {
+    color: #888; font-size: 11px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 380px;
+}
+.claudeai-tool-result-icon { font-size: 12px; }
+.claudeai-tool-result-summary { color: #303030; font-weight: 500; }
+.claudeai-tool-details[open] > summary { border-bottom: 1px solid #eee; }
+.claudeai-tool-details > pre {
+    margin: 0; padding: 8px 12px;
+    background: #fafafa; border-left: 3px solid #5e7ce2;
+    font-size: 11px; line-height: 1.4;
+    max-height: 320px; overflow: auto;
+}
+.claudeai-tool-call--err .claudeai-tool-details > pre { border-left-color: #d93b3b; background: #fff8f8; }
 .claudeai-chat-main { display: flex; flex-direction: column; padding: 0; }
 .claudeai-chat-side h4 {
     font-size: 11px; font-weight: 700; text-transform: uppercase;
