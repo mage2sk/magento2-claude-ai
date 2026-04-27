@@ -75,3 +75,28 @@
 .claudeai-back {
     display: inline-block; margin-bottom: 14px; font-size: 12px;
 }
+.claudeai-convo-pager {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    background: #fff; border: 1px solid #e3e3e3; border-radius: 4px;
+    padding: 10px 14px; margin: 16px 0;
+}
+.claudeai-pager-info { font-size: 12px; color: #777; }
+.claudeai-pager-links { display: flex; gap: 4px; align-items: center; }
+.claudeai-pager-link {
+    padding: 5px 10px; min-width: 28px; text-align: center;
+    border: 1px solid #d4d4d4; border-radius: 3px;
+    font-size: 12px; color: #303030; text-decoration: none;
+    background: #fff;
+}
+.claudeai-pager-link:hover { background: #fffaf6; border-color: #eb5202; color: #eb5202; }
+.claudeai-pager-link.is-current {
+    background: #eb5202; color: #fff; border-color: #eb5202; font-weight: 600;
+    cursor: default;
+}
+.claudeai-pager-link.is-disabled {
+    color: #bbb; background: #fafafa; cursor: not-allowed;
+}
+.claudeai-pager-gap {
+    padding: 5px 4px; color: #999; font-size: 12px;
+}

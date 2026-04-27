@@ -7,6 +7,13 @@ $cid = $block->getConversationId();
 $messages = $block->getMessages();
 $summary = $block->getSummary();
 $attachments = $block->getAttachments();
+$totalPages = $block->getTotalPages();
+$currentPage = $block->getCurrentPage();
+$totalMessages = $block->getTotalMessages();
+$pageSize = $block->getPageSize();
+$pagerLinks = $block->getPaginationLinks();
+$rangeStart = $totalMessages > 0 ? (($currentPage - 1) * $pageSize) + 1 : 0;
+$rangeEnd   = min($totalMessages, $currentPage * $pageSize);
 $avatarFor = static function (string $role): string {
     return match ($role) {
         'user'        => 'U',
@@ -81,6 +88,48 @@ $avatarFor = static function (string $role): string {
                 </ul>
             </div>
         <?php endif; ?>
+
+        <?php
+        $renderPager = static function () use ($block, $escaper, $pagerLinks, $currentPage, $totalPages, $rangeStart, $rangeEnd, $totalMessages) {
+            if ($totalPages <= 1) {
+                return;
+            }
+            ?>
+            <nav class="claudeai-convo-pager" aria-label="<?= $escaper->escapeHtmlAttr(__('Conversation pages')) ?>">
+                <span class="claudeai-pager-info">
+                    <?= $escaper->escapeHtml(__('Showing %1 – %2 of %3 messages', $rangeStart, $rangeEnd, $totalMessages)) ?>
+                </span>
+                <div class="claudeai-pager-links">
+                    <?php if ($currentPage > 1): ?>
+                        <a class="claudeai-pager-link" href="<?= $escaper->escapeUrl($block->getPageUrl($currentPage - 1)) ?>">
+                            ← <?= $escaper->escapeHtml(__('Prev')) ?>
+                        </a>
+                    <?php else: ?>
+                        <span class="claudeai-pager-link is-disabled">← <?= $escaper->escapeHtml(__('Prev')) ?></span>
+                    <?php endif; ?>
+                    <?php foreach ($pagerLinks as $p): ?>
+                        <?php if ($p === '…'): ?>
+                            <span class="claudeai-pager-gap">…</span>
+                        <?php elseif ((int) $p === (int) $currentPage): ?>
+                            <span class="claudeai-pager-link is-current"><?= (int) $p ?></span>
+                        <?php else: ?>
+                            <a class="claudeai-pager-link"
+                               href="<?= $escaper->escapeUrl($block->getPageUrl((int) $p)) ?>"><?= (int) $p ?></a>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                    <?php if ($currentPage < $totalPages): ?>
+                        <a class="claudeai-pager-link" href="<?= $escaper->escapeUrl($block->getPageUrl($currentPage + 1)) ?>">
+                            <?= $escaper->escapeHtml(__('Next')) ?> →
+                        </a>
+                    <?php else: ?>
+                        <span class="claudeai-pager-link is-disabled"><?= $escaper->escapeHtml(__('Next')) ?> →</span>
+                    <?php endif; ?>
+                </div>
+            </nav>
+            <?php
+        };
+        $renderPager();
+        ?>
 
         <?php foreach ($messages as $m):
             $role = (string) $m['role'];
@@ -161,6 +210,8 @@ $avatarFor = static function (string $role): string {
                 </div>
             </div>
         <?php endforeach; ?>
+
+        <?php $renderPager(); ?>
     <?php endif; ?>
 
     <div class="claudeai-credit">
