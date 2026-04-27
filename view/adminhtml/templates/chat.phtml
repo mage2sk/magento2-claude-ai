@@ -152,7 +152,7 @@ $recent = $block->getRecentConversations(40);
     feed.addEventListener('scroll', () => { _stickToBottom = nearBottom(); });
     function autoScroll(force) {
         if (force || _stickToBottom) {
-            autoScroll();
+            feed.scrollTop = feed.scrollHeight;
         }
     }
     function clearEmpty() { const e = feed.querySelector('.claudeai-chat-empty'); if (e) e.remove(); }
