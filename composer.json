@@ -3,7 +3,7 @@
     "description": "Magento 2 Automation with Claude AI — natural-language store management. Update prices, query catalog, surface insights, all by asking in plain English. Powered by Anthropic's Claude API with tool use.",
     "type": "magento2-module",
     "license": "MIT",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "keywords": [
         "magento2",
         "magento2-module",

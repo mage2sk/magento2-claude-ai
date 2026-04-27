@@ -23,9 +23,12 @@
                 <update_product_price>1</update_product_price>
                 <update_product_status>1</update_product_status>
                 <update_inventory>1</update_inventory>
+                <customers>1</customers>
+                <orders>1</orders>
                 <store_insights>1</store_insights>
                 <get_low_stock_products>1</get_low_stock_products>
                 <store_info>1</store_info>
+                <get_modules>1</get_modules>
                 <cache_reindex>1</cache_reindex>
                 <restore_checkpoint>1</restore_checkpoint>
             </tools>

@@ -109,9 +109,24 @@
                     <label>Adjust stock quantities</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="store_insights" translate="label" type="select" sortOrder="50" showInDefault="1">
-                    <label>Customer &amp; order insights</label>
+                <field id="customers" translate="label comment" type="select" sortOrder="42" showInDefault="1">
+                    <label>Customer search &amp; lookup</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Read-only — search by email/name, get by ID/email. Never returns passwords.</comment>
+                </field>
+                <field id="orders" translate="label comment" type="select" sortOrder="44" showInDefault="1">
+                    <label>Order management (search, hold, cancel, comment)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Search + lookup + hold/unhold/cancel/comment. Cancel always requires explicit confirmation.</comment>
+                </field>
+                <field id="store_insights" translate="label" type="select" sortOrder="50" showInDefault="1">
+                    <label>Customer &amp; order insights (aggregates)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="get_modules" translate="label comment" type="select" sortOrder="55" showInDefault="1">
+                    <label>List installed modules</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Read-only — answer "how many modules / which third-party / is X installed".</comment>
                 </field>
                 <field id="get_low_stock_products" translate="label" type="select" sortOrder="60" showInDefault="1">
                     <label>Find low-stock products</label>
