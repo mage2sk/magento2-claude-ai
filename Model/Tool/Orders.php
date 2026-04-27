@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Panth\ClaudeAi\Model\Tool;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Sales\Api\Data\OrderStatusHistoryInterfaceFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -28,6 +29,7 @@ class Orders implements ToolInterface
         private readonly OrderStatusHistoryRepositoryInterface $historyRepository,
         private readonly OrderStatusHistoryInterfaceFactory $historyFactory,
         private readonly SearchCriteriaBuilder $criteriaBuilder,
+        private readonly SortOrderBuilder $sortOrderBuilder,
         private readonly Config $config
     ) {
     }
@@ -92,7 +94,9 @@ class Orders implements ToolInterface
         if (!empty($input['created_after'])) {
             $cb->addFilter('created_at', (string) $input['created_after'], 'gteq');
         }
-        $cb->addSortOrder('created_at', 'DESC');
+        // Magento 2.4.8+ requires a SortOrder object here.
+        $sort = $this->sortOrderBuilder->setField('created_at')->setDirection('DESC')->create();
+        $cb->addSortOrder($sort);
         $list = $this->orderRepository->getList($cb->setPageSize($limit)->create());
 
         $rows = [];

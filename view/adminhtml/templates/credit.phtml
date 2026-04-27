@@ -1,0 +1,51 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Credit $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div class="claudeai-credit">
+    <div class="claudeai-credit-card">
+        <div class="claudeai-credit-line">
+            <span class="claudeai-credit-heart" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 21s-7.5-4.7-9.6-9.3C.9 8.4 2.7 5 6.1 5c2 0 3.4 1 4.5 2.5l1.4 1.9 1.4-1.9C14.5 6 15.9 5 17.9 5c3.4 0 5.2 3.4 3.7 6.7C19.5 16.3 12 21 12 21z"/>
+                </svg>
+            </span>
+            <span><?= $escaper->escapeHtml(__('Designed &amp; developed with love by')) ?></span>
+            <a href="<?= $escaper->escapeUrl($block->getWebsiteUrl()) ?>" target="_blank" rel="noopener" class="claudeai-credit-name">
+                <?= $escaper->escapeHtml($block->getDeveloperName()) ?>
+            </a>
+            <span class="claudeai-credit-sep" aria-hidden="true">·</span>
+            <span class="claudeai-credit-company"><?= $escaper->escapeHtml($block->getCompanyName()) ?></span>
+        </div>
+        <div class="claudeai-credit-links">
+            <a href="<?= $escaper->escapeUrl($block->getWebsiteUrl()) ?>" target="_blank" rel="noopener"
+               class="claudeai-credit-link"
+               title="<?= $escaper->escapeHtmlAttr(__('Visit website')) ?>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                </svg>
+                <span><?= $escaper->escapeHtml('kishansavaliya.com') ?></span>
+            </a>
+            <a href="mailto:<?= $escaper->escapeHtmlAttr($block->getEmailAddress()) ?>"
+               class="claudeai-credit-link"
+               title="<?= $escaper->escapeHtmlAttr(__('Send email')) ?>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+                    <path d="M22 6l-10 7L2 6"/>
+                </svg>
+                <span><?= $escaper->escapeHtml($block->getEmailAddress()) ?></span>
+            </a>
+            <a href="<?= $escaper->escapeUrl($block->getUpworkUrl()) ?>" target="_blank" rel="noopener"
+               class="claudeai-credit-link claudeai-credit-link--upwork"
+               title="<?= $escaper->escapeHtmlAttr(__('Hire on Upwork')) ?>">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M18.56 13.16c-1.13 0-2.18-.48-3.13-1.25l.21-.99v-.04c.19-1.05.79-2.81 2.92-2.81 1.59 0 2.89 1.3 2.89 2.89s-1.3 2.89-2.89 2.89zm0-7.81c-2.72 0-4.83 1.77-5.69 4.68-1.31-1.97-2.31-4.34-2.89-6.34H7.05v7.66c0 1.51-1.23 2.74-2.74 2.74S1.57 12.86 1.57 11.35V3.69H-1.3v7.66c0 3.09 2.51 5.62 5.6 5.62 3.09 0 5.6-2.53 5.6-5.62v-1.28c.57 1.18 1.27 2.39 2.13 3.45L11.16 22h2.94l1.32-6.21c1.16.73 2.49 1.18 3.94 1.18 3.18 0 5.78-2.62 5.78-5.81 0-3.18-2.6-5.81-5.78-5.81z" transform="translate(2 0)"/>
+                </svg>
+                <span><?= $escaper->escapeHtml('Upwork') ?></span>
+            </a>
+        </div>
+    </div>
+</div>

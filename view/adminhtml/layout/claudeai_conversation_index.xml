@@ -9,6 +9,9 @@
             <block class="Panth\ClaudeAi\Block\Adminhtml\Conversation\Listing"
                    name="claudeai.conversation.listing"
                    template="Panth_ClaudeAi::conversation/listing.phtml"/>
+            <block class="Panth\ClaudeAi\Block\Adminhtml\Credit"
+                   name="claudeai.credit"
+                   template="Panth_ClaudeAi::credit.phtml"/>
         </referenceContainer>
     </body>
 </page>

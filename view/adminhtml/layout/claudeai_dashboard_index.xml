@@ -9,6 +9,9 @@
             <block class="Panth\ClaudeAi\Block\Adminhtml\Dashboard"
                    name="claudeai.dashboard"
                    template="Panth_ClaudeAi::dashboard.phtml"/>
+            <block class="Panth\ClaudeAi\Block\Adminhtml\Credit"
+                   name="claudeai.credit"
+                   template="Panth_ClaudeAi::credit.phtml"/>
         </referenceContainer>
     </body>
 </page>

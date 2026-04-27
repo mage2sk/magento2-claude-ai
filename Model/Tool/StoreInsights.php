@@ -5,6 +5,7 @@ namespace Panth\ClaudeAi\Model\Tool;
 
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
 /**
@@ -16,7 +17,8 @@ class StoreInsights implements ToolInterface
     public function __construct(
         private readonly CustomerRepositoryInterface $customerRepository,
         private readonly OrderRepositoryInterface $orderRepository,
-        private readonly SearchCriteriaBuilder $criteriaBuilder
+        private readonly SearchCriteriaBuilder $criteriaBuilder,
+        private readonly SortOrderBuilder $sortOrderBuilder
     ) {
     }
 
@@ -99,8 +101,15 @@ class StoreInsights implements ToolInterface
 
                 case 'recent_orders': {
                     $limit = min(50, max(1, (int) ($input['limit'] ?? 10)));
+                    // Magento 2.4.8+ requires a SortOrder object — passing
+                    // ('created_at', 'DESC') as strings throws
+                    // "Call to a member function getField() on string".
+                    $sort = $this->sortOrderBuilder
+                        ->setField('created_at')
+                        ->setDirection('DESC')
+                        ->create();
                     $criteria = $this->criteriaBuilder
-                        ->addSortOrder('created_at', 'DESC')
+                        ->addSortOrder($sort)
                         ->setPageSize($limit)
                         ->create();
                     $list = $this->orderRepository->getList($criteria);

@@ -9,6 +9,9 @@
             <block class="Panth\ClaudeAi\Block\Adminhtml\Activity"
                    name="claudeai.activity"
                    template="Panth_ClaudeAi::activity.phtml"/>
+            <block class="Panth\ClaudeAi\Block\Adminhtml\Credit"
+                   name="claudeai.credit"
+                   template="Panth_ClaudeAi::credit.phtml"/>
         </referenceContainer>
     </body>
 </page>

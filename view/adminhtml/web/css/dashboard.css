@@ -89,13 +89,80 @@
 .claudeai-steps { padding-left: 20px; margin: 0; }
 .claudeai-steps li { margin-bottom: 6px; font-size: 13px; line-height: 1.5; }
 
-/* Credit footer — appears at the bottom of every Claude AI admin page */
+/* Credit footer — appears at the bottom of every Claude AI admin page.
+   One Block + one template + these styles (rendered globally from
+   default.xml). To change the footer, edit Credit.php / credit.phtml
+   — never re-introduce inline credit divs. */
 .claudeai-credit {
-    text-align: center; font-size: 12px; color: #777; padding: 18px 12px 8px;
+    margin: 22px 0 6px;
+    padding: 0 4px;
+    display: flex; justify-content: center;
 }
-.claudeai-credit a { color: #eb5202; text-decoration: none; font-weight: 600; }
-.claudeai-credit a:hover { text-decoration: underline; }
-.claudeai-credit .heart { color: #e02b27; }
+.claudeai-credit-card {
+    width: 100%; max-width: 720px;
+    background: linear-gradient(135deg, #ffffff 0%, #fffaf6 100%);
+    border: 1px solid #efe2d7;
+    border-radius: 8px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 3px rgba(20,20,20,.04);
+    text-align: center;
+}
+.claudeai-credit-line {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; flex-wrap: wrap;
+    font-size: 13px; color: #444;
+    margin-bottom: 9px;
+}
+.claudeai-credit-heart {
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #e02b27; line-height: 0;
+    animation: claudeaiHeart 1.6s ease-in-out infinite;
+}
+.claudeai-credit-heart svg { width: 14px; height: 14px; display: block; fill: currentColor; }
+@keyframes claudeaiHeart {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.18); }
+}
+.claudeai-credit-name {
+    color: #eb5202 !important; text-decoration: none !important;
+    font-weight: 700;
+    transition: color .15s ease;
+}
+.claudeai-credit-name:hover { color: #c4410f !important; text-decoration: underline !important; }
+.claudeai-credit-sep { color: #ccc; }
+.claudeai-credit-company { color: #555; font-weight: 600; }
+
+.claudeai-credit-links {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; flex-wrap: wrap;
+}
+.claudeai-credit-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 11px;
+    background: #fff;
+    border: 1px solid #e3e3e3; border-radius: 999px;
+    color: #555 !important; text-decoration: none !important;
+    font-size: 12px; font-weight: 500;
+    transition: all .15s ease;
+}
+.claudeai-credit-link svg {
+    width: 13px; height: 13px;
+    display: block;
+    flex-shrink: 0;
+}
+.claudeai-credit-link:hover {
+    color: #eb5202 !important;
+    border-color: #eb5202;
+    background: #fff8f3;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(235,82,2,.12);
+}
+.claudeai-credit-link--upwork:hover {
+    color: #14a800 !important;
+    border-color: #14a800;
+    background: #f4fbf2;
+    box-shadow: 0 2px 6px rgba(20,168,0,.14);
+}
 
 /* Form helpers (used on Training edit + Howto status pills) */
 .claudeai-form-row { margin-bottom: 14px; }
@@ -282,6 +349,10 @@
     background: #fff; transition: color .15s, border-color .15s;
 }
 .claudeai-attach-btn:hover { color: #eb5202; border-color: #eb5202; }
+/* Magento admin's global svg{fill:currentColor} would turn outline icons
+   into solid blocks here too — force fill:none + stroke=currentColor. */
+.claudeai-attach-btn svg,
+.claudeai-attach-btn svg path { fill: none !important; stroke: currentColor !important; }
 .claudeai-attachments {
     display: flex; gap: 6px; padding: 8px 10px; flex-wrap: wrap;
     background: #fafafa; border-top: 1px solid #e3e3e3;

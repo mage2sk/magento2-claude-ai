@@ -70,17 +70,19 @@
 }
 .pclaude-widget.is-open { display: flex; transform: translateY(0) scale(1); opacity: 1; }
 
-/* Resize grip — top-left corner, subtle */
+/* Resize grip — top-left corner. Three diagonal dots so it's clearly
+   a handle, not a stray pixel. Bright on the dark header, fades on hover. */
 .pclaude-resize {
-    position: absolute; top: 0; left: 0; width: 22px; height: 22px;
+    position: absolute; top: 0; left: 0; width: 24px; height: 24px;
     cursor: nwse-resize; z-index: 5;
+    background:
+        radial-gradient(circle at 4px 4px,   rgba(255,255,255,.85) 1.5px, transparent 2px),
+        radial-gradient(circle at 9px 4px,   rgba(255,255,255,.55) 1.5px, transparent 2px),
+        radial-gradient(circle at 4px 9px,   rgba(255,255,255,.55) 1.5px, transparent 2px);
+    transition: opacity .15s ease;
+    opacity: .85;
 }
-.pclaude-resize::before {
-    content: ""; position: absolute; top: 6px; left: 6px;
-    width: 8px; height: 8px;
-    border-top: 2px solid rgba(255,255,255,.55); border-left: 2px solid rgba(255,255,255,.55);
-    border-radius: 1px;
-}
+.pclaude-resize:hover { opacity: 1; }
 body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
 
 /* ====================== Header ====================== */
@@ -122,14 +124,41 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
 }
 .pclaude-actions { display: flex; gap: 4px; align-items: center; position: relative; z-index: 1; }
 .pclaude-icon-btn {
-    width: 28px; height: 28px; border-radius: 7px;
+    width: 30px; height: 30px; border-radius: 7px;
     background: rgba(255,255,255,.08); border: none; color: #f3f3f3;
     cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: background .15s, transform .15s;
+    text-decoration: none;
 }
-.pclaude-icon-btn:hover { background: rgba(255,255,255,.18); }
+.pclaude-icon-btn:hover { background: rgba(255,255,255,.20); color: #fff; }
 .pclaude-icon-btn:active { transform: scale(.94); }
-.pclaude-icon-btn svg { width: 14px; height: 14px; }
+/* Magento admin's global stylesheet sets svg { fill: currentColor } which
+   turns our outline icons into solid blocks. Force fill:none on the SVG +
+   every path so the stroke does the drawing. */
+.pclaude-icon-btn svg,
+.pclaude-icon-btn svg path,
+.pclaude-icon-btn svg circle,
+.pclaude-icon-btn svg rect { fill: none !important; stroke: currentColor !important; }
+.pclaude-icon-btn svg { width: 15px; height: 15px; display: block; }
+/* Brand mark + empty-state mark — these need fill:none on paths too so
+   the stroke renders cleanly against the gradient. */
+.pclaude-mark svg, .pclaude-mark svg path,
+.pclaude-empty-mark svg, .pclaude-empty-mark svg path {
+    fill: none !important; stroke: currentColor !important;
+}
+.pclaude-mark svg path        { stroke: #fff !important; }
+.pclaude-empty-mark svg path  { stroke: #fff !important; }
+.pclaude-launcher svg,
+.pclaude-launcher svg path,
+.pclaude-launcher svg circle  { stroke: currentColor !important; }
+.pclaude-launcher svg circle  { fill: currentColor !important; }
+.pclaude-launcher svg path    { fill: none !important; }
+.pclaude-stop svg,
+.pclaude-stop svg rect        { fill: currentColor !important; stroke: none !important; }
+.pclaude-send svg,
+.pclaude-send svg path        { fill: none !important; stroke: currentColor !important; }
+.pclaude-attach svg,
+.pclaude-attach svg path      { fill: none !important; stroke: currentColor !important; }
 
 /* ====================== Feed ====================== */
 .pclaude-feed {
@@ -182,11 +211,20 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
 .pclaude-avatar {
     width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 11px; font-weight: 700;
+    color: #fff;
     background: linear-gradient(135deg, #ff6b1a, #c4410f);
     box-shadow: 0 2px 5px rgba(235,82,2,.28);
     margin-top: 2px;
 }
+.pclaude-avatar svg {
+    width: 14px; height: 14px; display: block;
+    fill: currentColor !important; stroke: none !important;
+}
+.pclaude-avatar svg path { fill: currentColor !important; stroke: none !important; }
+/* JS marks every AI row after the first one in a turn with .is-continuation
+   so multi-block replies (text + tool + text, image + text, etc.) read as
+   one continuous message instead of stacked sparkle avatars. */
+.pclaude-row.ai.is-continuation .pclaude-avatar { visibility: hidden; }
 .pclaude-bubble {
     max-width: 82%; padding: 10px 13px; border-radius: 14px;
     font-size: 13.5px; line-height: 1.5;
@@ -307,7 +345,9 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
 .pclaude-send:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(235,82,2,.4); }
 .pclaude-send:active { transform: translateY(0); }
 .pclaude-send:disabled { background: #d4d4d4; cursor: not-allowed; box-shadow: none; transform: none; }
-.pclaude-send svg { width: 16px; height: 16px; }
+.pclaude-send svg { width: 17px; height: 17px; display: block; transform: rotate(0deg); }
+.pclaude-attach svg { display: block; }
+.pclaude-stop svg { width: 12px; height: 12px; display: block; }
 
 .pclaude-stop {
     width: 36px; height: 36px; border-radius: 10px;
@@ -500,13 +540,33 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
     }
     function clearEmpty() { const e = feed.querySelector('.pclaude-empty'); if (e) e.remove(); }
 
+    // Stylized sparkle glyph — Claude/AI mark, not a generic "C".
+    const AI_GLYPH =
+        '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+        '<path d="M12 2.5l1.95 5.55L19.5 10l-5.55 1.95L12 17.5l-1.95-5.55L4.5 10l5.55-1.95L12 2.5z"/>' +
+        '<path d="M18.5 14.5l.85 2.4 2.4.85-2.4.85-.85 2.4-.85-2.4-2.4-.85 2.4-.85.85-2.4z" opacity=".75"/>' +
+        '</svg>';
+
+    // Walk back through preceding siblings — if the first non-tool row we
+    // hit is another AI row, this new bubble is a continuation of the same
+    // assistant turn and should hide its avatar.
+    function isContinuation() {
+        for (let n = feed.lastElementChild; n; n = n.previousElementSibling) {
+            if (n.classList.contains('pclaude-tool')) continue;
+            if (n.classList.contains('pclaude-row')) {
+                return n.classList.contains('ai');
+            }
+        }
+        return false;
+    }
     function bubble(role, html) {
         clearEmpty();
         const row = document.createElement('div');
         row.className = 'pclaude-row ' + role;
+        if (role === 'ai' && isContinuation()) row.classList.add('is-continuation');
         let inner = '';
         if (role === 'ai') {
-            inner += '<div class="pclaude-avatar">C</div>';
+            inner += '<div class="pclaude-avatar">' + AI_GLYPH + '</div>';
         }
         inner += '<div class="pclaude-bubble">' + html + '</div>';
         row.innerHTML = inner;
@@ -518,7 +578,8 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
         clearEmpty();
         const row = document.createElement('div');
         row.className = 'pclaude-row ai';
-        row.innerHTML = '<div class="pclaude-avatar">C</div>' +
+        if (isContinuation()) row.classList.add('is-continuation');
+        row.innerHTML = '<div class="pclaude-avatar">' + AI_GLYPH + '</div>' +
             '<div class="pclaude-bubble"><span class="pclaude-typing"><span></span><span></span><span></span></span></div>';
         feed.appendChild(row);
         scrollDown();
