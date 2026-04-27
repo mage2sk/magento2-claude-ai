@@ -39,7 +39,14 @@ class View extends Template
 
     public function getConversationId(): string
     {
-        return (string) $this->getRequest()->getParam('id', '');
+        // Accept `cid` (preferred — see Listing::getViewUrl for why) and
+        // fall back to `id` so old links still work.
+        $req = $this->getRequest();
+        $cid = (string) $req->getParam('cid', '');
+        if ($cid === '') {
+            $cid = (string) $req->getParam('id', '');
+        }
+        return $cid;
     }
 
     /**

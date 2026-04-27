@@ -5,6 +5,7 @@ namespace Panth\ClaudeAi\Block\Adminhtml;
 
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
+use Magento\Backend\Model\UrlInterface as BackendUrl;
 use Magento\Framework\App\ResourceConnection;
 use Panth\ClaudeAi\Model\Config;
 use Panth\ClaudeAi\Model\Pricing;
@@ -18,9 +19,18 @@ class Activity extends Template
         private readonly ResourceConnection $resource,
         private readonly Pricing $pricing,
         private readonly Config $config,
+        private readonly BackendUrl $backendUrl,
         array $data = []
     ) {
         parent::__construct($context, $data);
+    }
+
+    public function getConversationViewUrl(string $conversationId): string
+    {
+        return $this->backendUrl->getUrl(
+            'claudeai/conversation/view',
+            ['cid' => $conversationId]
+        );
     }
 
     /** @return array<int,array<string,mixed>> */

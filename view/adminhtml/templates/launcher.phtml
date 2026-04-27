@@ -29,12 +29,27 @@
     position: fixed; bottom: 86px; right: 20px; z-index: 899;
     width: 380px; max-width: calc(100vw - 32px);
     height: 560px; max-height: calc(100vh - 110px);
+    min-width: 280px; min-height: 320px;
     background: #fff; border: 1px solid #e3e3e3; border-radius: 8px;
     box-shadow: 0 12px 32px rgba(0,0,0,.18);
     display: none; flex-direction: column; overflow: hidden;
     font-family: 'Open Sans', sans-serif;
 }
 .claudeai-widget.is-open { display: flex; }
+/* Drag handle in the top-left to resize the panel from that corner. */
+.claudeai-widget-resize {
+    position: absolute; top: 0; left: 0;
+    width: 18px; height: 18px;
+    cursor: nwse-resize; z-index: 2;
+    background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,.6) 50%, rgba(255,255,255,.6) 60%, transparent 60%);
+}
+.claudeai-widget-resize::before {
+    content: ""; position: absolute; top: 4px; left: 4px;
+    width: 8px; height: 8px;
+    border-top: 2px solid #fff; border-left: 2px solid #fff;
+    opacity: .85;
+}
+body.claudeai-resizing { user-select: none; cursor: nwse-resize !important; }
 .claudeai-widget-header {
     padding: 12px 14px; background: #303030; color: #fff;
     display: flex; align-items: center; justify-content: space-between;
@@ -156,6 +171,8 @@
 </button>
 
 <div class="claudeai-widget" id="claudeai-widget" role="dialog" aria-label="<?= $escaper->escapeHtmlAttr(__('Ask Claude')) ?>">
+    <div class="claudeai-widget-resize" id="claudeai-widget-resize"
+         title="<?= $escaper->escapeHtmlAttr(__('Drag to resize')) ?>"></div>
     <div class="claudeai-widget-header">
         <div>
             <div class="title"><?= $escaper->escapeHtml(__('Ask Claude AI')) ?></div>
@@ -385,5 +402,59 @@
         if (f) uploadFile(f);
         e.target.value = '';
     });
+
+    // ---------- Free-form resize from the top-left corner ----------
+    const SIZE_KEY = 'claudeai_widget_size_v1';
+    const resizeHandle = document.getElementById('claudeai-widget-resize');
+
+    function applySavedSize() {
+        try {
+            const raw = localStorage.getItem(SIZE_KEY);
+            if (!raw) return;
+            const s = JSON.parse(raw);
+            if (s && Number.isFinite(s.w) && Number.isFinite(s.h)) {
+                widget.style.width  = Math.max(280, s.w) + 'px';
+                widget.style.height = Math.max(320, s.h) + 'px';
+            }
+        } catch (e) { /* ignore */ }
+    }
+    function saveSize(w, h) {
+        try { localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h })); } catch (e) { /* ignore */ }
+    }
+    applySavedSize();
+
+    let resizing = null;
+    resizeHandle?.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        const rect = widget.getBoundingClientRect();
+        // Pin the widget's BOTTOM-RIGHT corner so it grows toward the top-left.
+        widget.style.bottom = (window.innerHeight - rect.bottom) + 'px';
+        widget.style.right  = (window.innerWidth  - rect.right)  + 'px';
+        resizing = {
+            startX: e.clientX, startY: e.clientY,
+            startW: rect.width, startH: rect.height,
+            anchorRight: rect.right, anchorBottom: rect.bottom,
+        };
+        document.body.classList.add('claudeai-resizing');
+        resizeHandle.setPointerCapture(e.pointerId);
+    });
+    resizeHandle?.addEventListener('pointermove', (e) => {
+        if (!resizing) return;
+        // Dragging top-left → wider/taller as we move up-left.
+        const w = Math.max(280, Math.min(window.innerWidth  - 24, resizing.anchorRight  - e.clientX));
+        const h = Math.max(320, Math.min(window.innerHeight - 24, resizing.anchorBottom - e.clientY));
+        widget.style.width  = w + 'px';
+        widget.style.height = h + 'px';
+    });
+    function endResize(e) {
+        if (!resizing) return;
+        const rect = widget.getBoundingClientRect();
+        saveSize(rect.width, rect.height);
+        resizing = null;
+        document.body.classList.remove('claudeai-resizing');
+        try { resizeHandle.releasePointerCapture(e.pointerId); } catch {}
+    }
+    resizeHandle?.addEventListener('pointerup',     endResize);
+    resizeHandle?.addEventListener('pointercancel', endResize);
 })();
 </script>

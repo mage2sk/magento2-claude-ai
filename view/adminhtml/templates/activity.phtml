@@ -30,6 +30,7 @@ $rows = $block->getRecentActivity(200);
                             <th style="text-align:right"><?= $escaper->escapeHtml(__('Tokens (in/out)')) ?></th>
                             <th style="text-align:right"><?= $escaper->escapeHtml(__('Cost')) ?></th>
                             <th><?= $escaper->escapeHtml(__('Status')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Conversation')) ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -52,6 +53,13 @@ $rows = $block->getRecentActivity(200);
                                 <td>
                                     <?php $st = (string) $r['status']; ?>
                                     <span class="claudeai-status-pill claudeai-status-<?= $st === 'success' ? 'ok' : 'err' ?>"><?= $escaper->escapeHtml($st) ?></span>
+                                </td>
+                                <td>
+                                    <?php $cid = (string) ($r['conversation_id'] ?? ''); ?>
+                                    <?php if ($cid !== ''): ?>
+                                        <a href="<?= $escaper->escapeUrl($block->getConversationViewUrl($cid)) ?>"
+                                           style="font-size:11px"><?= $escaper->escapeHtml(__('View')) ?></a>
+                                    <?php else: ?>—<?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

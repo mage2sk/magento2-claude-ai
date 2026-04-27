@@ -5,6 +5,7 @@ namespace Panth\ClaudeAi\Block\Adminhtml;
 
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
+use Magento\Framework\App\ResourceConnection;
 use Panth\ClaudeAi\Model\Config;
 use Panth\ClaudeAi\Model\ToolRegistry;
 
@@ -16,6 +17,7 @@ class Chat extends Template
         Context $context,
         private readonly Config $config,
         private readonly ToolRegistry $tools,
+        private readonly ResourceConnection $resource,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -29,6 +31,81 @@ class Chat extends Template
     public function getUploadUrl(): string
     {
         return $this->getUrl('claudeai/chat/upload');
+    }
+
+    public function getLoadUrl(): string
+    {
+        return $this->getUrl('claudeai/chat/load');
+    }
+
+    /**
+     * Recent conversations for the resume sidebar — one entry per conversation.
+     *
+     * @return array<int,array{conversation_id:string,started_at:string,last_at:string,turns:int,preview:string}>
+     */
+    public function getRecentConversations(int $limit = 30): array
+    {
+        $conn  = $this->resource->getConnection();
+        $table = $this->resource->getTableName('panth_claudeai_message');
+        if (!$conn->isTableExists($table)) {
+            return [];
+        }
+        $rows = $conn->fetchAll(
+            "SELECT conversation_id,
+                    MIN(created_at) AS started_at,
+                    MAX(created_at) AS last_at,
+                    COUNT(*)        AS turns
+               FROM {$table}
+              GROUP BY conversation_id
+              ORDER BY MAX(created_at) DESC
+              LIMIT " . max(1, $limit)
+        );
+        if (!$rows) {
+            return [];
+        }
+        $cids = array_column($rows, 'conversation_id');
+        $place = implode(',', array_fill(0, count($cids), '?'));
+        $previewRows = $conn->fetchAll(
+            "SELECT conversation_id, content_json
+               FROM {$table}
+              WHERE role = 'user' AND conversation_id IN ({$place})
+              ORDER BY conversation_id, sequence ASC",
+            $cids
+        );
+        $previews = [];
+        foreach ($previewRows as $p) {
+            $cid = (string) $p['conversation_id'];
+            if (isset($previews[$cid])) {
+                continue;
+            }
+            $decoded = json_decode((string) $p['content_json'], true);
+            if (!is_array($decoded)) {
+                $previews[$cid] = '';
+                continue;
+            }
+            if (isset($decoded['type'])) {
+                $decoded = [$decoded];
+            }
+            foreach ($decoded as $b) {
+                if (is_array($b) && ($b['type'] ?? '') === 'text' && !empty($b['text'])) {
+                    $previews[$cid] = mb_strimwidth((string) $b['text'], 0, 60, '…');
+                    break;
+                }
+            }
+            $previews[$cid] = $previews[$cid] ?? '';
+        }
+        $out = [];
+        foreach ($rows as $r) {
+            $cid = (string) $r['conversation_id'];
+            $out[] = [
+                'conversation_id' => $cid,
+                'started_at'      => (string) $r['started_at'],
+                'last_at'         => (string) $r['last_at'],
+                'turns'           => (int) $r['turns'],
+                'preview'         => $previews[$cid] ?? '',
+            ];
+        }
+        return $out;
     }
 
     public function getConfigUrl(): string

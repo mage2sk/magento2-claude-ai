@@ -110,9 +110,12 @@ class Listing extends Template
 
     public function getViewUrl(string $conversationId): string
     {
+        // Use `cid` not `id` — Magento backend reserves `id` for entity routing
+        // and silently drops it for some controller chains, which leaves the
+        // view page with no conversation ID to look up.
         return $this->backendUrl->getUrl(
             'claudeai/conversation/view',
-            ['id' => $conversationId]
+            ['cid' => $conversationId]
         );
     }
 

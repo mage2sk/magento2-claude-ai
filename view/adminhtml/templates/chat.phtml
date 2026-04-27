@@ -4,6 +4,7 @@
  * @var \Magento\Framework\Escaper $escaper
  */
 $tools = $block->getToolSummaries();
+$recent = $block->getRecentConversations(40);
 ?>
 <div class="claudeai-page">
     <?php if (!$block->isConfigured()): ?>
@@ -26,7 +27,31 @@ $tools = $block->getToolSummaries();
 
     <div class="claudeai-chat">
         <aside class="claudeai-chat-side">
-            <h4><?= $escaper->escapeHtml(__('Capabilities')) ?></h4>
+            <div class="claudeai-side-head">
+                <h4 style="margin:0"><?= $escaper->escapeHtml(__('Conversations')) ?></h4>
+                <button type="button" id="claudeai-new-chat" class="claudeai-newchat-btn" title="<?= $escaper->escapeHtmlAttr(__('Start a new conversation')) ?>">
+                    + <?= $escaper->escapeHtml(__('New')) ?>
+                </button>
+            </div>
+            <ul class="claudeai-chat-history" id="claudeai-history">
+                <?php if (empty($recent)): ?>
+                    <li class="claudeai-history-empty"><?= $escaper->escapeHtml(__('No previous conversations yet — your first chat will appear here.')) ?></li>
+                <?php else: ?>
+                    <?php foreach ($recent as $c): ?>
+                        <li class="claudeai-history-item"
+                            data-cid="<?= $escaper->escapeHtmlAttr($c['conversation_id']) ?>"
+                            title="<?= $escaper->escapeHtmlAttr($c['conversation_id']) ?>">
+                            <div class="claudeai-history-line"><?= $escaper->escapeHtml($c['preview'] !== '' ? $c['preview'] : '(file or empty)') ?></div>
+                            <div class="claudeai-history-meta">
+                                <?= $escaper->escapeHtml(date('M j H:i', strtotime($c['last_at']))) ?>
+                                · <?= (int) $c['turns'] ?> <?= $escaper->escapeHtml(__('turns')) ?>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </ul>
+
+            <h4 style="margin-top:14px"><?= $escaper->escapeHtml(__('Capabilities')) ?></h4>
             <ul class="claudeai-chat-tools">
                 <?php foreach ($tools as $tool): ?>
                     <li>
@@ -89,6 +114,7 @@ $tools = $block->getToolSummaries();
     'use strict';
     const SEND_URL   = <?= json_encode($block->getSendUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const UPLOAD_URL = <?= json_encode($block->getUploadUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+    const LOAD_URL   = <?= json_encode($block->getLoadUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const FORM_KEY   = <?= json_encode($block->getFormKey(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
 
     const feed     = document.getElementById('claudeai-feed');
@@ -304,6 +330,74 @@ $tools = $block->getToolSummaries();
             input.focus();
             input.dispatchEvent(new Event('input'));
         });
+    });
+
+    // Reset to a brand-new conversation (clears feed + history + cid).
+    function newChat() {
+        conversation = [];
+        conversationId = '';
+        pendingAttachments = [];
+        renderAttachments();
+        feed.innerHTML = '<div class="claudeai-chat-empty">' +
+            '<h3><?= $escaper->escapeJs(__('Hi! I\'m Claude.')) ?></h3>' +
+            '<p><?= $escaper->escapeJs(__('Ask me anything about your store.')) ?></p>' +
+            '</div>';
+        document.querySelectorAll('.claudeai-history-item').forEach(li => li.classList.remove('is-active'));
+        input.focus();
+    }
+    document.getElementById('claudeai-new-chat')?.addEventListener('click', newChat);
+
+    // Replay one stored conversation into the feed in lightweight bubble form.
+    function replay(messages) {
+        feed.innerHTML = '';
+        for (const msg of messages || []) {
+            const blocks = Array.isArray(msg.content) ? msg.content
+                         : [{ type: 'text', text: String(msg.content || '') }];
+            const role = msg.role === 'assistant' ? 'ai' : 'user';
+            for (const b of blocks) {
+                if (b.type === 'text') {
+                    bubble(role, md(b.text || ''));
+                } else if (b.type === 'image' && b.source?.data) {
+                    const uri = 'data:' + (b.source.media_type || 'image/png') + ';base64,' + b.source.data;
+                    bubble(role, '<img class="claudeai-bubble-attached" src="' + esc(uri) + '" alt="">');
+                } else if (b.type === 'document') {
+                    bubble(role, '<div class="claudeai-bubble-att-chip">📄 attached document</div>');
+                } else if (b.type === 'tool_use') {
+                    toolChip(b.name || 'tool', '(replayed call)', 'success');
+                } else if (b.type === 'tool_result') {
+                    const txt = typeof b.content === 'string' ? b.content
+                              : Array.isArray(b.content) ? b.content.map(x => x.text || '').join(' ')
+                              : '';
+                    if (txt) toolChip('result', mb(txt, 80), 'success');
+                }
+            }
+        }
+    }
+    function mb(s, n) { s = String(s || ''); return s.length > n ? s.slice(0, n) + '…' : s; }
+
+    async function loadConversation(cid) {
+        if (!cid) return;
+        try {
+            const url = LOAD_URL + (LOAD_URL.includes('?') ? '&' : '?') + 'cid=' + encodeURIComponent(cid);
+            const resp = await fetch(url, { credentials: 'include', headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await resp.json();
+            if (!data.success) {
+                bubble('err', '<strong><?= $escaper->escapeJs(__('Could not load:')) ?></strong> ' + esc(data.error || 'unknown'));
+                return;
+            }
+            conversation = data.messages || [];
+            conversationId = data.conversation_id || cid;
+            replay(conversation);
+            document.querySelectorAll('.claudeai-history-item').forEach(li => {
+                li.classList.toggle('is-active', li.dataset.cid === cid);
+            });
+        } catch (e) {
+            bubble('err', '<strong><?= $escaper->escapeJs(__('Network error:')) ?></strong> ' + esc(e.message));
+        }
+    }
+
+    document.querySelectorAll('.claudeai-history-item').forEach(li => {
+        li.addEventListener('click', () => loadConversation(li.dataset.cid || ''));
     });
 })();
 </script>

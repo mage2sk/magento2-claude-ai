@@ -22,7 +22,10 @@ class View extends Action
     {
         $page = $this->pageFactory->create();
         $page->setActiveMenu('Panth_ClaudeAi::ai_conversations');
-        $cid = (string) $this->getRequest()->getParam('id', '');
+        $cid = (string) $this->getRequest()->getParam('cid', '');
+        if ($cid === '') {
+            $cid = (string) $this->getRequest()->getParam('id', '');
+        }
         $title = $cid !== ''
             ? __('Conversation %1', mb_strimwidth($cid, 0, 16, '…'))
             : __('Conversation');
