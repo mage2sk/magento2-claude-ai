@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Admin tool catalog: full Magento depth.
+         Adding a new tool = implement ToolInterface, register here. -->
+    <virtualType name="Panth\ClaudeAi\Model\ToolRegistry\Admin"
+                 type="Panth\ClaudeAi\Model\ToolRegistry">
+        <arguments>
+            <argument name="tools" xsi:type="array">
+                <item name="get_products"            xsi:type="object">Panth\ClaudeAi\Model\Tool\GetProducts</item>
+                <item name="update_product_price"    xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateProductPrice</item>
+                <item name="update_product_status"   xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateProductStatus</item>
+                <item name="update_inventory"        xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateInventory</item>
+                <item name="store_insights"          xsi:type="object">Panth\ClaudeAi\Model\Tool\StoreInsights</item>
+                <item name="get_low_stock_products"  xsi:type="object">Panth\ClaudeAi\Model\Tool\LowStock</item>
+                <item name="store_info"              xsi:type="object">Panth\ClaudeAi\Model\Tool\StoreInfo</item>
+                <item name="cache_reindex"           xsi:type="object">Panth\ClaudeAi\Model\Tool\CacheReindex</item>
+                <item name="restore_checkpoint"      xsi:type="object">Panth\ClaudeAi\Model\Tool\RestoreCheckpoint</item>
+            </argument>
+            <argument name="config" xsi:type="object">Panth\ClaudeAi\Model\Config</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Default registry (admin) — the only catalog this module exposes.
+         There is no storefront surface; everything is admin-only. -->
+    <preference for="Panth\ClaudeAi\Model\ToolRegistry"
+                type="Panth\ClaudeAi\Model\ToolRegistry\Admin"/>
+
+    <!-- Activity log grid data provider -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="panth_claudeai_activity_listing_data_source" xsi:type="string">
+                    Panth\ClaudeAi\Model\ResourceModel\Activity\Collection
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Panth\ClaudeAi\Model\ResourceModel\Activity\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">panth_claudeai_activity</argument>
+            <argument name="resourceModel" xsi:type="string">Panth\ClaudeAi\Model\ResourceModel\Activity</argument>
+        </arguments>
+    </type>
+
+    <!-- Custom logger writing to var/log/panth_claudeai.log so chat events
+         and tool errors are easy to grep without scanning system.log. -->
+    <type name="Panth\ClaudeAi\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">panth_claudeai</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Panth\ClaudeAi\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- CLI commands -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="panth_claudeai_status"   xsi:type="object">Panth\ClaudeAi\Console\Command\StatusCommand</item>
+                <item name="panth_claudeai_test_api" xsi:type="object">Panth\ClaudeAi\Console\Command\TestApiCommand</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

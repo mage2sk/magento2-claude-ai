@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <!-- Nightly housekeeping: prune old activity rows + checkpoint snapshots
+             based on retention windows in the config. Defensive — never
+             throws so a problem here can't cascade through the cron group. -->
+        <job name="panth_claudeai_cleanup"
+             instance="Panth\ClaudeAi\Cron\Cleanup"
+             method="execute">
+            <schedule>0 3 * * *</schedule>
+        </job>
+    </group>
+</config>

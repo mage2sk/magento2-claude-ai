@@ -1,0 +1,96 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Training\Edit $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$training = $block->getTraining();
+$id = $training ? (int) $training->getId() : 0;
+$values = $training ? $training->getData() : [];
+?>
+<div class="claudeai-page">
+    <div class="page-actions">
+        <div class="page-actions-inner">
+            <div class="page-actions-buttons">
+                <a href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>" class="action-default">
+                    <span>← <?= $escaper->escapeHtml(__('Back')) ?></span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" action="<?= $escaper->escapeUrl($block->getSaveUrl()) ?>">
+        <?= $block->getBlockHtml('formkey') ?>
+        <input type="hidden" name="training_id" value="<?= (int) $id ?>"/>
+
+        <div class="admin__page-section">
+            <div class="admin__page-section-title">
+                <span class="title"><?= $escaper->escapeHtml(__('Training example')) ?></span>
+            </div>
+            <div class="admin__page-section-content">
+                <p class="claudeai-help">
+                    <?= $escaper->escapeHtml(__('Examples are merchant-curated few-shot prompts. Claude reads them every time you ask something — they teach the AI your store\'s conventions.')) ?>
+                </p>
+
+                <div class="claudeai-form-row">
+                    <label class="claudeai-form-label"><?= $escaper->escapeHtml(__('Title')) ?> <span style="color:#b30000">*</span></label>
+                    <input type="text" name="title" required maxlength="255" class="claudeai-form-input"
+                           value="<?= $escaper->escapeHtmlAttr((string) ($values['title'] ?? '')) ?>"
+                           placeholder="<?= $escaper->escapeHtmlAttr(__('e.g. Bulk discount our flagship configurables')) ?>"/>
+                    <div class="claudeai-form-hint"><?= $escaper->escapeHtml(__('A short label so you can find this example later.')) ?></div>
+                </div>
+
+                <div class="claudeai-form-row">
+                    <label class="claudeai-form-label"><?= $escaper->escapeHtml(__('Merchant says')) ?></label>
+                    <textarea name="user_message" required rows="3" class="claudeai-form-input"
+                              placeholder="<?= $escaper->escapeHtmlAttr(__('Discount all flagship products by 15%')) ?>"><?= $escaper->escapeHtml((string) ($values['user_message'] ?? '')) ?></textarea>
+                    <div class="claudeai-form-hint"><?= $escaper->escapeHtml(__('Write it the way a real merchant would. Claude recognises similar phrasing.')) ?></div>
+                </div>
+
+                <div class="claudeai-form-row">
+                    <label class="claudeai-form-label"><?= $escaper->escapeHtml(__('Expected outcome')) ?></label>
+                    <textarea name="expected_outcome" required rows="5" class="claudeai-form-input"
+                              placeholder="<?= $escaper->escapeHtmlAttr(__('Use get_products with sku_pattern starting MH (our flagship prefix), confirm the count, then apply update_product_price with -15% via dry-run first.')) ?>"><?= $escaper->escapeHtml((string) ($values['expected_outcome'] ?? '')) ?></textarea>
+                    <div class="claudeai-form-hint"><?= $escaper->escapeHtml(__('Describe the right approach: which tools, in what order, with what safeguards.')) ?></div>
+                </div>
+
+                <div class="claudeai-form-row" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
+                    <div>
+                        <label class="claudeai-form-label"><?= $escaper->escapeHtml(__('Category')) ?></label>
+                        <input type="text" name="category" maxlength="64" class="claudeai-form-input"
+                               value="<?= $escaper->escapeHtmlAttr((string) ($values['category'] ?? '')) ?>"
+                               placeholder="pricing"/>
+                        <div class="claudeai-form-hint"><?= $escaper->escapeHtml(__('Optional. e.g. pricing, inventory.')) ?></div>
+                    </div>
+                    <div>
+                        <label class="claudeai-form-label"><?= $escaper->escapeHtml(__('Sort order')) ?></label>
+                        <input type="number" name="sort_order" class="claudeai-form-input"
+                               value="<?= (int) ($values['sort_order'] ?? 0) ?>"/>
+                        <div class="claudeai-form-hint"><?= $escaper->escapeHtml(__('Lower = appears earlier in system prompt.')) ?></div>
+                    </div>
+                    <div>
+                        <label class="claudeai-form-label"><?= $escaper->escapeHtml(__('Status')) ?></label>
+                        <select name="status" class="claudeai-form-input">
+                            <option value="1" <?= (int) ($values['status'] ?? 1) === 1 ? 'selected' : '' ?>><?= $escaper->escapeHtml(__('Active')) ?></option>
+                            <option value="0" <?= (int) ($values['status'] ?? 1) === 0 ? 'selected' : '' ?>><?= $escaper->escapeHtml(__('Disabled')) ?></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top:14px;display:flex;gap:8px;align-items:center">
+                    <button type="submit" class="action-primary"><span><?= $escaper->escapeHtml(__('Save example')) ?></span></button>
+                    <button type="submit" name="back" value="1" class="action-default"><span><?= $escaper->escapeHtml(__('Save & continue editing')) ?></span></button>
+                    <?php if ($id): ?>
+                        <a href="<?= $escaper->escapeUrl($block->getDeleteUrl()) ?>"
+                           onclick="return confirm('<?= $escaper->escapeJs(__('Delete this training example?')) ?>')"
+                           style="margin-left:auto;color:#b30000;font-weight:600"><?= $escaper->escapeHtml(__('Delete')) ?></a>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="claudeai-credit">
+        <?= $escaper->escapeHtml(__('Designed & developed with')) ?> <span class="heart">♥</span>
+        <?= $escaper->escapeHtml(__('by')) ?> <a href="https://kishansavaliya.com" target="_blank" rel="noopener">Kishan Savaliya</a> · Panth Infotech
+    </div>
+</div>

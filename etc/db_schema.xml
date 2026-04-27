@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+
+    <!-- Activity log: every user prompt, tool call, and assistant reply,
+         with timing + token usage. Powers the dashboard KPIs and the
+         Activity Log admin grid. -->
+    <table name="panth_claudeai_activity" resource="default" engine="innodb"
+           comment="Claude AI automation activity log">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true"/>
+        <column xsi:type="varchar" name="conversation_id" length="64" nullable="true"/>
+        <column xsi:type="varchar" name="actor_type" length="32" nullable="false" default="admin"
+                comment="user|tool|assistant|system"/>
+        <column xsi:type="varchar" name="action" length="64" nullable="false"/>
+        <column xsi:type="mediumtext" name="prompt" nullable="true"/>
+        <column xsi:type="mediumtext" name="result" nullable="true"/>
+        <column xsi:type="varchar" name="status" length="16" nullable="false" default="success"/>
+        <column xsi:type="int" name="affected_count" unsigned="true" nullable="true" default="0"/>
+        <column xsi:type="int" name="duration_ms" unsigned="true" nullable="true"/>
+        <column xsi:type="int" name="input_tokens" unsigned="true" nullable="true"/>
+        <column xsi:type="int" name="output_tokens" unsigned="true" nullable="true"/>
+        <column xsi:type="int" name="cache_read_tokens" unsigned="true" nullable="true"/>
+        <column xsi:type="int" name="admin_user_id" unsigned="true" nullable="true"/>
+        <column xsi:type="varchar" name="checkpoint_id" length="64" nullable="true"
+                comment="Linked checkpoint for restore — set on destructive ops"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false"
+                default="CURRENT_TIMESTAMP"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="PANTH_CLAUDEAI_ACT_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+        <index referenceId="PANTH_CLAUDEAI_ACT_ACTION" indexType="btree">
+            <column name="action"/>
+        </index>
+        <index referenceId="PANTH_CLAUDEAI_ACT_CONV" indexType="btree">
+            <column name="conversation_id"/>
+        </index>
+    </table>
+
+    <!-- Training examples: user-curated few-shot prompts that get injected
+         into the system prompt so Claude learns store-specific conventions
+         (e.g. "when the merchant says 'flagship products', they mean the
+         configurables tagged 'flagship'"). -->
+    <table name="panth_claudeai_training" resource="default" engine="innodb"
+           comment="Training examples / few-shot prompts">
+        <column xsi:type="int" name="training_id" unsigned="true" nullable="false" identity="true"/>
+        <column xsi:type="varchar" name="title" length="255" nullable="false"
+                comment="Short label for this example"/>
+        <column xsi:type="text" name="user_message" nullable="false"
+                comment="What a merchant might say"/>
+        <column xsi:type="text" name="expected_outcome" nullable="false"
+                comment="How Claude should respond / which tools to use"/>
+        <column xsi:type="varchar" name="category" length="64" nullable="true"
+                comment="Optional tag — pricing, inventory, customer, etc."/>
+        <column xsi:type="smallint" name="status" unsigned="true" nullable="false" default="1"
+                comment="1=active 0=disabled"/>
+        <column xsi:type="int" name="sort_order" unsigned="true" nullable="false" default="0"/>
+        <column xsi:type="int" name="usage_count" unsigned="true" nullable="false" default="0"
+                comment="How many times included in a system prompt"/>
+        <column xsi:type="int" name="admin_user_id" unsigned="true" nullable="true"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false"
+                default="CURRENT_TIMESTAMP"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false"
+                default="CURRENT_TIMESTAMP"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="training_id"/>
+        </constraint>
+        <index referenceId="PANTH_CLAUDEAI_TRN_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+        <index referenceId="PANTH_CLAUDEAI_TRN_CATEGORY" indexType="btree">
+            <column name="category"/>
+        </index>
+    </table>
+
+    <!-- Checkpoints: snapshots of entity state taken before destructive bulk
+         operations (price changes, status flips, inventory edits). Stored
+         as JSON so we can restore via the same tool surface. -->
+    <table name="panth_claudeai_checkpoint" resource="default" engine="innodb"
+           comment="Pre-destructive-op state snapshots for restore">
+        <column xsi:type="int" name="entity_id" unsigned="true" nullable="false" identity="true"/>
+        <column xsi:type="varchar" name="checkpoint_id" length="64" nullable="false"
+                comment="Public ID (cp_xxx) referenced from activity log"/>
+        <column xsi:type="varchar" name="conversation_id" length="64" nullable="true"/>
+        <column xsi:type="varchar" name="op_type" length="64" nullable="false"
+                comment="Tool name that triggered this snapshot"/>
+        <column xsi:type="varchar" name="entity_type" length="32" nullable="false"
+                comment="product|customer|order|cms_page|category|stock"/>
+        <column xsi:type="int" name="record_count" unsigned="true" nullable="false" default="0"/>
+        <column xsi:type="mediumtext" name="before_state" nullable="false"
+                comment="JSON array of snapshotted records keyed by entity ID/SKU"/>
+        <column xsi:type="text" name="description" nullable="true"
+                comment="Human-readable summary of what was about to change"/>
+        <column xsi:type="varchar" name="status" length="16" nullable="false" default="active"
+                comment="active|restored|expired"/>
+        <column xsi:type="int" name="admin_user_id" unsigned="true" nullable="true"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false"
+                default="CURRENT_TIMESTAMP"/>
+        <column xsi:type="timestamp" name="restored_at" on_update="false" nullable="true"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="PANTH_CLAUDEAI_CHK_CID">
+            <column name="checkpoint_id"/>
+        </constraint>
+        <index referenceId="PANTH_CLAUDEAI_CHK_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+        <index referenceId="PANTH_CLAUDEAI_CHK_CREATED" indexType="btree">
+            <column name="created_at"/>
+        </index>
+    </table>
+
+    <!-- File uploads attached to chat conversations.
+         Includes a `scope` column distinguishing admin uploads from
+         storefront uploads — used to enforce different size/MIME caps. -->
+    <table name="panth_claudeai_attachment" resource="default" engine="innodb"
+           comment="Files uploaded into chat — image/document content blocks">
+        <column xsi:type="int" name="attachment_id" unsigned="true" nullable="false" identity="true"/>
+        <column xsi:type="varchar" name="conversation_id" length="64" nullable="false"/>
+        <column xsi:type="varchar" name="scope" length="16" nullable="false" default="admin"
+                comment="admin|storefront — controls size cap + retention"/>
+        <column xsi:type="varchar" name="original_name" length="255" nullable="false"/>
+        <column xsi:type="varchar" name="stored_path" length="500" nullable="false"/>
+        <column xsi:type="varchar" name="mime_type" length="128" nullable="false"/>
+        <column xsi:type="int" name="size_bytes" unsigned="true" nullable="false" default="0"/>
+        <column xsi:type="int" name="admin_user_id" unsigned="true" nullable="true"/>
+        <column xsi:type="varchar" name="storefront_ip_hash" length="64" nullable="true"
+                comment="sha256 of the IP for storefront uploads — for rate limiting / abuse"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false"
+                default="CURRENT_TIMESTAMP"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="attachment_id"/>
+        </constraint>
+        <index referenceId="PANTH_CLAUDEAI_ATT_CONV" indexType="btree">
+            <column name="conversation_id"/>
+        </index>
+        <index referenceId="PANTH_CLAUDEAI_ATT_SCOPE" indexType="btree">
+            <column name="scope"/>
+        </index>
+    </table>
+
+    <!-- Full conversation message log: every user prompt, assistant reply,
+         tool_use block, tool_result block — stored in order so the whole
+         exchange can be replayed/inspected/debugged. Costs and timing
+         attach to assistant messages. -->
+    <table name="panth_claudeai_message" resource="default" engine="innodb"
+           comment="Per-message conversation log (full content blocks)">
+        <column xsi:type="int" name="message_id" unsigned="true" nullable="false" identity="true"/>
+        <column xsi:type="varchar" name="conversation_id" length="64" nullable="false"/>
+        <column xsi:type="int" name="sequence" unsigned="true" nullable="false" default="0"
+                comment="Order within conversation"/>
+        <column xsi:type="varchar" name="role" length="32" nullable="false"
+                comment="user|assistant|tool_use|tool_result|system"/>
+        <column xsi:type="varchar" name="surface" length="16" nullable="false" default="admin"
+                comment="admin|storefront"/>
+        <column xsi:type="mediumtext" name="content_json" nullable="false"
+                comment="Full JSON of the content blocks as sent/received"/>
+        <column xsi:type="int" name="input_tokens"  unsigned="true" nullable="true"/>
+        <column xsi:type="int" name="output_tokens" unsigned="true" nullable="true"/>
+        <column xsi:type="int" name="cache_read_tokens" unsigned="true" nullable="true"/>
+        <column xsi:type="decimal" name="cost_usd" scale="6" precision="10" nullable="true"/>
+        <column xsi:type="varchar" name="model" length="64" nullable="true"/>
+        <column xsi:type="int" name="admin_user_id" unsigned="true" nullable="true"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false"
+                default="CURRENT_TIMESTAMP"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="message_id"/>
+        </constraint>
+        <index referenceId="PANTH_CLAUDEAI_MSG_CONV" indexType="btree">
+            <column name="conversation_id"/>
+        </index>
+        <index referenceId="PANTH_CLAUDEAI_MSG_CREATED" indexType="btree">
+            <column name="created_at"/>
+        </index>
+        <index referenceId="PANTH_CLAUDEAI_MSG_SURFACE" indexType="btree">
+            <column name="surface"/>
+        </index>
+    </table>
+</schema>

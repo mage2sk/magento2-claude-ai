@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Panth_ClaudeAi::css/dashboard.css"/>
+        <css src="Panth_ClaudeAi::css/conversation.css"/>
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="Panth\ClaudeAi\Block\Adminhtml\Conversation\View"
+                   name="claudeai.conversation.view"
+                   template="Panth_ClaudeAi::conversation/view.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

@@ -1,0 +1,72 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Checkpoint $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$rows = $block->getCheckpoints(200);
+?>
+<div class="claudeai-page">
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Checkpoints & restore')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p class="claudeai-help">
+                <?= $escaper->escapeHtml(__('Every bulk change the AI made created an undo point. Click Restore on any row to roll it back. Older un-restored checkpoints auto-prune based on retention config.')) ?>
+            </p>
+
+            <?php if (empty($rows)): ?>
+                <div class="claudeai-empty">
+                    <p><strong><?= $escaper->escapeHtml(__('No checkpoints yet.')) ?></strong></p>
+                    <p class="claudeai-help"><?= $escaper->escapeHtml(__('Bulk writes the AI performs (price changes, stock updates, status flips) appear here automatically for one-click rollback.')) ?></p>
+                </div>
+            <?php else: ?>
+                <table class="data-grid">
+                    <thead>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('When')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Operation')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Description')) ?></th>
+                            <th style="text-align:right"><?= $escaper->escapeHtml(__('Records')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Status')) ?></th>
+                            <th style="text-align:right;width:140px"><?= $escaper->escapeHtml(__('Action')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rows as $cp): ?>
+                            <tr>
+                                <td style="white-space:nowrap"><?= $escaper->escapeHtml(date('M j H:i:s', strtotime((string) $cp->getData('created_at')))) ?></td>
+                                <td><code style="font-size:11px"><?= $escaper->escapeHtml((string) $cp->getData('op_type')) ?></code></td>
+                                <td style="max-width:380px"><?= $escaper->escapeHtml((string) $cp->getData('description')) ?></td>
+                                <td style="text-align:right"><strong><?= (int) $cp->getData('record_count') ?></strong></td>
+                                <td>
+                                    <?php $st = (string) $cp->getData('status'); ?>
+                                    <?php if ($st === 'restored'): ?>
+                                        <span class="claudeai-status-pill" style="background:#dbe9fe;color:#1f4480"><?= $escaper->escapeHtml(__('Restored')) ?></span>
+                                    <?php elseif ($st === 'expired'): ?>
+                                        <span class="claudeai-status-pill" style="background:#e8e8e8;color:#555"><?= $escaper->escapeHtml(__('Expired')) ?></span>
+                                    <?php else: ?>
+                                        <span class="claudeai-status-pill claudeai-status-ok"><?= $escaper->escapeHtml(__('Active')) ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="text-align:right">
+                                    <?php if ($st === 'active'): ?>
+                                        <a href="<?= $escaper->escapeUrl($block->getRestoreUrl((string) $cp->getData('checkpoint_id'))) ?>"
+                                           onclick="return confirm('<?= $escaper->escapeJs(__('Restore this checkpoint? This will revert ' . (int) $cp->getData('record_count') . ' records.')) ?>')">↶ <?= $escaper->escapeHtml(__('Restore')) ?></a>
+                                    <?php else: ?>
+                                        <span style="color:#aaa">—</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="claudeai-credit">
+        <?= $escaper->escapeHtml(__('Designed & developed with')) ?> <span class="heart">♥</span>
+        <?= $escaper->escapeHtml(__('by')) ?> <a href="https://kishansavaliya.com" target="_blank" rel="noopener">Kishan Savaliya</a> · Panth Infotech
+    </div>
+</div>

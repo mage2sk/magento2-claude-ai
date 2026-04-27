@@ -1,0 +1,234 @@
+/* Panth ClaudeAi — admin styles.
+   Kept deliberately thin so we inherit Magento's admin theme (Open Sans,
+   #fff cards, #eb5202 primary, etc.). We only style what core admin
+   doesn't already cover: the 4-column KPI grid, status pills, the credit
+   strip, and a few helper layout primitives. */
+
+/* Magento core injects icon glyphs via .admin__menu .item-<name> > a:before
+   for built-in items (dashboard, catalog, etc.). Magento's class generator
+   uses ONLY the last segment of the menu ID, so a child item with id
+   `Panth_ClaudeAi::dashboard` would have class `.item-dashboard` and
+   inherit the core dashboard icon. We solve this two ways:
+   1. Prefix every child id with `ai_` (see menu.xml) so they don't collide.
+   2. Defensively suppress any :before/:after on submenu links inside our
+      flyout. The parent group has id `Panth_ClaudeAi::ai_root` → class
+      `.item-ai-root`, which is unique enough to use as the anchor. */
+.admin__menu .item-ai-root .submenu a:before,
+.admin__menu .item-ai-root .submenu a:after,
+#nav .item-ai-root .submenu a:before,
+.menu-wrapper .item-ai-root .submenu a:before {
+    content: none !important;
+    display: none !important;
+}
+
+/* KPI cards — match Magento's lifetime-sales / average-order strip */
+.claudeai-kpi-row {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px;
+}
+.claudeai-usage-strip {
+    margin-top: 10px; padding: 8px 14px;
+    background: #fafafa; border: 1px solid #e3e3e3; border-radius: 3px;
+    display: flex; gap: 18px; flex-wrap: wrap;
+    font-size: 12px; color: #555;
+}
+.claudeai-usage-strip strong { color: #303030; }
+.claudeai-kpi {
+    background: #fff; border: 1px solid #e3e3e3; border-radius: 3px;
+    padding: 12px 14px;
+}
+.claudeai-kpi-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .04em; color: #303030; margin-bottom: 4px;
+}
+.claudeai-kpi-value {
+    font-size: 26px; font-weight: 600; color: #303030; line-height: 1.1; margin-bottom: 4px;
+}
+.claudeai-kpi-sub { font-size: 11px; color: #777; }
+
+/* Two-column layout for quick actions + activity */
+.claudeai-two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0;
+}
+@media (max-width: 1300px) {
+    .claudeai-kpi-row { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 1100px) {
+    .claudeai-two-col { grid-template-columns: 1fr; }
+    .claudeai-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+.claudeai-link-right { float: right; font-size: 12px; }
+
+/* Quick-action list */
+.claudeai-quick-list { list-style: none; margin: 0; padding: 0; }
+.claudeai-quick-list li { border-bottom: 1px solid #e3e3e3; }
+.claudeai-quick-list li:last-child { border-bottom: none; }
+.claudeai-quick-list a {
+    display: block; padding: 10px 4px; text-decoration: none; color: #303030;
+}
+.claudeai-quick-list a:hover { background: #faf8f6; }
+.claudeai-quick-list a strong {
+    display: block; font-size: 13px; color: #303030; margin-bottom: 2px;
+}
+.claudeai-quick-list a span {
+    display: block; font-size: 12px; color: #777; font-style: italic;
+}
+
+/* Status pills — match Magento's grid badge pattern */
+.claudeai-status-pill {
+    display: inline-block; padding: 1px 8px; border-radius: 3px;
+    font-size: 11px; font-weight: 600;
+}
+.claudeai-status-ok    { background: #e0f0d8; color: #316022; }
+.claudeai-status-err   { background: #fde2e2; color: #b30000; }
+
+.claudeai-empty { text-align: center; padding: 24px 12px; }
+.claudeai-help  { color: #777; font-size: 12px; margin: 4px 0 8px; }
+
+/* Steps list */
+.claudeai-steps { padding-left: 20px; margin: 0; }
+.claudeai-steps li { margin-bottom: 6px; font-size: 13px; line-height: 1.5; }
+
+/* Credit footer — appears at the bottom of every Claude AI admin page */
+.claudeai-credit {
+    text-align: center; font-size: 12px; color: #777; padding: 18px 12px 8px;
+}
+.claudeai-credit a { color: #eb5202; text-decoration: none; font-weight: 600; }
+.claudeai-credit a:hover { text-decoration: underline; }
+.claudeai-credit .heart { color: #e02b27; }
+
+/* Form helpers (used on Training edit + Howto status pills) */
+.claudeai-form-row { margin-bottom: 14px; }
+.claudeai-form-label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: #303030; margin-bottom: 5px;
+}
+.claudeai-form-input {
+    width: 100%; padding: 6px 10px; font-size: 13px; font-family: inherit;
+    border: 1px solid #adadad; border-radius: 1px; background: #fff;
+    color: #303030;
+}
+.claudeai-form-input:focus {
+    outline: none; border-color: #eb5202;
+    box-shadow: 0 0 0 1px #eb5202;
+}
+.claudeai-form-hint { font-size: 12px; color: #777; margin-top: 3px; }
+
+/* Chat surface (admin) — keeps its own frame because the conversation UI
+   needs a fixed-height feed; everything else inherits Magento defaults. */
+.claudeai-chat {
+    display: grid; grid-template-columns: 240px 1fr; gap: 12px;
+    margin-top: 12px; min-height: 480px;
+}
+.claudeai-chat-side, .claudeai-chat-main {
+    background: #fff; border: 1px solid #e3e3e3; border-radius: 3px;
+}
+.claudeai-chat-side { padding: 14px; overflow-y: auto; max-height: 600px; }
+.claudeai-chat-main { display: flex; flex-direction: column; padding: 0; }
+.claudeai-chat-side h4 {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    color: #303030; margin: 12px 0 6px; letter-spacing: .04em;
+}
+.claudeai-chat-tools { list-style: none; margin: 0; padding: 0; font-size: 12px; }
+.claudeai-chat-tools li {
+    padding: 6px 0; border-bottom: 1px solid #f0f0f0;
+}
+.claudeai-chat-tools li code {
+    color: #eb5202; font-size: 11px; font-family: Menlo, monospace;
+    display: block; margin-bottom: 2px;
+}
+.claudeai-chat-tools li small { color: #777; font-size: 11px; line-height: 1.4; }
+.claudeai-chat-suggest { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.claudeai-chat-chip {
+    background: #fffaf6; border: 1px solid #e3e3e3; border-radius: 3px;
+    padding: 6px 10px; font-size: 12px; cursor: pointer;
+}
+.claudeai-chat-chip:hover { background: #fff3e6; border-color: #eb5202; }
+.claudeai-chat-feed {
+    flex: 1; overflow-y: auto; padding: 14px;
+    background: #faf8f6; min-height: 320px;
+}
+.claudeai-chat-empty { text-align: center; color: #777; padding: 60px 20px; }
+.claudeai-chat-empty h3 { font-size: 16px; color: #303030; margin: 0 0 6px; }
+.claudeai-chat-empty p { font-size: 12px; max-width: 380px; margin: 0 auto; }
+
+.claudeai-bubble { display: flex; margin-bottom: 10px; }
+.claudeai-bubble--user { justify-content: flex-end; }
+.claudeai-bubble-body {
+    max-width: 76%; padding: 8px 12px; border-radius: 4px;
+    font-size: 13px; line-height: 1.5;
+}
+.claudeai-bubble--user .claudeai-bubble-body { background: #eb5202; color: #fff; }
+.claudeai-bubble--ai   .claudeai-bubble-body { background: #fff; border: 1px solid #e3e3e3; }
+.claudeai-bubble--err  .claudeai-bubble-body { background: #fde2e2; color: #b30000; border: 1px solid #f5b3b3; }
+.claudeai-bubble code { background: #f5f5f5; padding: 1px 4px; border-radius: 2px; font-size: 12px; }
+
+.claudeai-tool-call {
+    display: inline-flex; gap: 6px; padding: 4px 10px;
+    background: #f0f5ff; border: 1px solid #c7d8f0; border-radius: 3px;
+    font-size: 11px; margin: 4px 0; color: #1f4480;
+}
+.claudeai-tool-call--err { background: #fde2e2; border-color: #f5b3b3; color: #b30000; }
+.claudeai-tool-call code { font-family: Menlo, monospace; font-size: 11px; }
+
+.claudeai-dots { display: inline-flex; gap: 3px; }
+.claudeai-dots span {
+    width: 5px; height: 5px; border-radius: 50%; background: #adadad;
+    animation: claudeai-bounce 1s infinite;
+}
+.claudeai-dots span:nth-child(2) { animation-delay: .15s; }
+.claudeai-dots span:nth-child(3) { animation-delay: .3s; }
+@keyframes claudeai-bounce { 0%,60%,100% { transform: translateY(0); opacity: .5 } 30% { transform: translateY(-3px); opacity: 1 } }
+
+.claudeai-meta { font-size: 11px; color: #999; margin-top: 4px; padding-top: 4px; border-top: 1px solid #f0f0f0; }
+
+.claudeai-composer {
+    display: flex; gap: 8px; padding: 10px; align-items: flex-end;
+    background: #fff; border-top: 1px solid #e3e3e3;
+}
+.claudeai-composer-input {
+    flex: 1; resize: none; border: 1px solid #adadad; border-radius: 1px;
+    padding: 6px 10px; font-size: 13px; font-family: inherit;
+    min-height: 32px; max-height: 200px;
+}
+.claudeai-composer-input:focus { outline: none; border-color: #eb5202; box-shadow: 0 0 0 1px #eb5202; }
+.claudeai-attach-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border: 1px solid #adadad; border-radius: 1px;
+    color: #777; cursor: pointer; flex-shrink: 0;
+    background: #fff; transition: color .15s, border-color .15s;
+}
+.claudeai-attach-btn:hover { color: #eb5202; border-color: #eb5202; }
+.claudeai-attachments {
+    display: flex; gap: 6px; padding: 8px 10px; flex-wrap: wrap;
+    background: #fafafa; border-top: 1px solid #e3e3e3;
+}
+.claudeai-att-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 6px 4px 4px; background: #fff;
+    border: 1px solid #e3e3e3; border-radius: 3px;
+    font-size: 11px; color: #303030;
+}
+.claudeai-att-chip img {
+    width: 32px; height: 32px; object-fit: cover; border-radius: 2px; display: block;
+}
+.claudeai-att-icon {
+    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+    background: #f0f0f0; border-radius: 2px; font-size: 18px;
+}
+.claudeai-att-name { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.claudeai-att-rm {
+    background: none; border: none; cursor: pointer;
+    color: #999; font-size: 14px; padding: 0 2px;
+}
+.claudeai-att-rm:hover { color: #b30000; }
+.claudeai-bubble-attached {
+    display: block; margin-top: 6px; max-width: 220px; max-height: 160px;
+    border-radius: 3px; border: 1px solid rgba(255,255,255,.4);
+}
+.claudeai-bubble-att-chip {
+    display: inline-block; margin-top: 6px; padding: 3px 8px;
+    background: rgba(255,255,255,.2); border-radius: 3px;
+    font-size: 11px; color: inherit;
+}
+@media (max-width: 900px) { .claudeai-chat { grid-template-columns: 1fr; } }

@@ -1,0 +1,170 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Conversation\View $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$cid = $block->getConversationId();
+$messages = $block->getMessages();
+$summary = $block->getSummary();
+$attachments = $block->getAttachments();
+$avatarFor = static function (string $role): string {
+    return match ($role) {
+        'user'        => 'U',
+        'assistant'   => 'C',
+        'tool_use'    => 'T',
+        'tool_result' => 'R',
+        default       => '·',
+    };
+};
+?>
+<div class="claudeai-page claudeai-convo">
+    <a class="claudeai-back" href="<?= $escaper->escapeUrl($block->getBackUrl()) ?>">
+        ← <?= $escaper->escapeHtml(__('Back to conversations')) ?>
+    </a>
+
+    <?php if ($cid === '' || empty($messages)): ?>
+        <div class="admin__page-section">
+            <div class="admin__page-section-content">
+                <div class="claudeai-empty">
+                    <p><?= $escaper->escapeHtml(__('Conversation not found or has no messages.')) ?></p>
+                </div>
+            </div>
+        </div>
+    <?php else: ?>
+        <div class="claudeai-convo-header">
+            <div class="stat">
+                <span class="label"><?= $escaper->escapeHtml(__('Started')) ?></span>
+                <span class="value"><?= $escaper->escapeHtml(date('M j, Y H:i', strtotime((string) ($summary['started_at'] ?? '')))) ?></span>
+            </div>
+            <div class="stat">
+                <span class="label"><?= $escaper->escapeHtml(__('Last activity')) ?></span>
+                <span class="value"><?= $escaper->escapeHtml(date('M j, Y H:i', strtotime((string) ($summary['last_at'] ?? '')))) ?></span>
+            </div>
+            <div class="stat">
+                <span class="label"><?= $escaper->escapeHtml(__('Turns')) ?></span>
+                <span class="value"><?= (int) ($summary['turns'] ?? 0) ?></span>
+            </div>
+            <div class="stat">
+                <span class="label"><?= $escaper->escapeHtml(__('Tokens (in / out)')) ?></span>
+                <span class="value"><?= (int) ($summary['in_tokens'] ?? 0) ?> / <?= (int) ($summary['out_tokens'] ?? 0) ?></span>
+            </div>
+            <div class="stat">
+                <span class="label"><?= $escaper->escapeHtml(__('Total cost')) ?></span>
+                <span class="value"><?= $escaper->escapeHtml($block->formatCost((float) ($summary['total_cost'] ?? 0))) ?></span>
+            </div>
+            <div class="stat">
+                <span class="label"><?= $escaper->escapeHtml(__('Model')) ?></span>
+                <span class="value" style="font-family:Menlo,monospace;font-size:11px"><?= $escaper->escapeHtml((string) ($summary['model'] ?? '—')) ?></span>
+            </div>
+            <div class="stat">
+                <span class="label"><?= $escaper->escapeHtml(__('Conversation ID')) ?></span>
+                <span class="value" style="font-family:Menlo,monospace;font-size:11px"><?= $escaper->escapeHtml($cid) ?></span>
+            </div>
+        </div>
+
+        <?php if (!empty($attachments)): ?>
+            <div class="claudeai-convo-attachments">
+                <h3><?= $escaper->escapeHtml(__('Uploaded files (%1)', count($attachments))) ?></h3>
+                <ul>
+                    <?php foreach ($attachments as $a): ?>
+                        <li>
+                            <a href="<?= $escaper->escapeUrl((string) $a['url']) ?>" target="_blank" rel="noopener">
+                                <?= $escaper->escapeHtml((string) $a['original_name']) ?>
+                            </a>
+                            <span style="color:#777; font-size:11px">
+                                — <?= $escaper->escapeHtml((string) $a['mime_type']) ?>,
+                                <?= (int) round(((int) $a['size_bytes']) / 1024) ?> KB,
+                                <?= $escaper->escapeHtml(date('M j H:i', strtotime((string) $a['created_at']))) ?>
+                            </span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        <?php endif; ?>
+
+        <?php foreach ($messages as $m):
+            $role = (string) $m['role'];
+            $blocks = $m['blocks'] ?? [];
+        ?>
+            <div class="claudeai-msg <?= $escaper->escapeHtmlAttr($role) ?>">
+                <div class="avatar"><?= $escaper->escapeHtml($avatarFor($role)) ?></div>
+                <div class="body">
+                    <div class="meta">
+                        <span class="role"><?= $escaper->escapeHtml($role) ?></span>
+                        <span><?= $escaper->escapeHtml(date('M j H:i:s', strtotime((string) $m['created_at']))) ?></span>
+                        <?php if ((int) ($m['input_tokens'] ?? 0) || (int) ($m['output_tokens'] ?? 0)): ?>
+                            <span style="font-family:Menlo,monospace">
+                                <?= (int) $m['input_tokens'] ?> in / <?= (int) $m['output_tokens'] ?> out
+                            </span>
+                        <?php endif; ?>
+                        <?php if (!empty($m['cost_usd'])): ?>
+                            <span style="font-family:Menlo,monospace">
+                                <?= $escaper->escapeHtml($block->formatCost((float) $m['cost_usd'])) ?>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php foreach ($blocks as $b):
+                        $type = (string) ($b['type'] ?? '');
+                    ?>
+                        <?php if ($type === 'text'): ?>
+                            <div class="text"><?= $escaper->escapeHtml((string) ($b['text'] ?? '')) ?></div>
+
+                        <?php elseif ($type === 'image'): ?>
+                            <?php $uri = $block->imageDataUri($b); ?>
+                            <?php if ($uri !== ''): ?>
+                                <img class="attachment"
+                                     src="<?= $escaper->escapeHtmlAttr($uri) ?>"
+                                     alt="<?= $escaper->escapeHtmlAttr(__('Uploaded image')) ?>"/>
+                            <?php else: ?>
+                                <div class="other-block"><?= $escaper->escapeHtml(__('[image — source missing]')) ?></div>
+                            <?php endif; ?>
+
+                        <?php elseif ($type === 'document'): ?>
+                            <?php $src = $b['source'] ?? []; $mt = (string) ($src['media_type'] ?? 'application/pdf'); ?>
+                            <div class="doc-block">
+                                📄 <?= $escaper->escapeHtml(__('Document attached')) ?>
+                                — <?= $escaper->escapeHtml($mt) ?>
+                                <?php if (!empty($src['data'])): ?>
+                                    (<?= (int) round(strlen((string) $src['data']) * 0.75 / 1024) ?> KB)
+                                <?php endif; ?>
+                            </div>
+
+                        <?php elseif ($type === 'tool_use'): ?>
+                            <details>
+                                <summary>
+                                    🛠️ <?= $escaper->escapeHtml(__('Tool call:')) ?>
+                                    <code><?= $escaper->escapeHtml((string) ($b['name'] ?? '')) ?></code>
+                                </summary>
+                                <pre><?= $escaper->escapeHtml($block->prettyJson($b['input'] ?? [])) ?></pre>
+                            </details>
+
+                        <?php elseif ($type === 'tool_result'): ?>
+                            <details>
+                                <summary>
+                                    ✅ <?= $escaper->escapeHtml(__('Tool result')) ?>
+                                    <?php if (!empty($b['tool_use_id'])): ?>
+                                        <span style="color:#777;font-weight:400">
+                                            (<?= $escaper->escapeHtml((string) $b['tool_use_id']) ?>)
+                                        </span>
+                                    <?php endif; ?>
+                                </summary>
+                                <pre><?= $escaper->escapeHtml($block->prettyJson($b['content'] ?? '')) ?></pre>
+                            </details>
+
+                        <?php else: ?>
+                            <div class="other-block">
+                                <?= $escaper->escapeHtml($type !== '' ? '[' . $type . ']' : '[unknown block]') ?>
+                            </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+
+    <div class="claudeai-credit">
+        <?= $escaper->escapeHtml(__('Designed & developed with')) ?> <span class="heart">♥</span>
+        <?= $escaper->escapeHtml(__('by')) ?> <a href="https://kishansavaliya.com" target="_blank" rel="noopener">Kishan Savaliya</a> · Panth Infotech
+    </div>
+</div>

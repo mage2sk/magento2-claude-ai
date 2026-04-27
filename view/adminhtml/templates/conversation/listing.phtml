@@ -1,0 +1,75 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Conversation\Listing $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$rows = $block->getConversations(200);
+?>
+<div class="claudeai-page">
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Conversations')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p class="claudeai-help">
+                <?= $escaper->escapeHtml(__('Each row is one full conversation with Claude — every prompt, reply, tool call, and uploaded file is grouped together. Click "View" to see the full transcript.')) ?>
+            </p>
+            <?php if (empty($rows)): ?>
+                <div class="claudeai-empty">
+                    <p><?= $escaper->escapeHtml(__('No conversations recorded yet.')) ?></p>
+                </div>
+            <?php else: ?>
+                <table class="data-grid">
+                    <thead>
+                        <tr>
+                            <th><?= $escaper->escapeHtml(__('Started')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Last activity')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('First prompt')) ?></th>
+                            <th style="text-align:right"><?= $escaper->escapeHtml(__('Turns')) ?></th>
+                            <th style="text-align:right"><?= $escaper->escapeHtml(__('Files')) ?></th>
+                            <th style="text-align:right"><?= $escaper->escapeHtml(__('Tokens (in/out)')) ?></th>
+                            <th style="text-align:right"><?= $escaper->escapeHtml(__('Total cost')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Surface')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Action')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rows as $r): ?>
+                            <tr>
+                                <td style="white-space:nowrap"><?= $escaper->escapeHtml(date('M j H:i', strtotime((string) $r['started_at']))) ?></td>
+                                <td style="white-space:nowrap"><?= $escaper->escapeHtml(date('M j H:i', strtotime((string) $r['last_at']))) ?></td>
+                                <td style="max-width:380px"><?= $escaper->escapeHtml((string) $r['preview']) ?></td>
+                                <td style="text-align:right"><?= (int) $r['turns'] ?></td>
+                                <td style="text-align:right"><?= (int) $r['attachments'] > 0 ? (int) $r['attachments'] : '—' ?></td>
+                                <td style="text-align:right;font-family:Menlo,monospace;font-size:11px;color:#777">
+                                    <?php if ((int) $r['in_tokens'] || (int) $r['out_tokens']): ?>
+                                        <?= (int) $r['in_tokens'] ?> / <?= (int) $r['out_tokens'] ?>
+                                    <?php else: ?>—<?php endif; ?>
+                                </td>
+                                <td style="text-align:right;font-family:Menlo,monospace;font-size:11px;color:#555">
+                                    <?= $escaper->escapeHtml($block->formatCost((float) $r['total_cost'])) ?>
+                                </td>
+                                <td>
+                                    <span class="claudeai-status-pill" style="background:#fffaf6;color:#eb5202;border:1px solid #fde2c4">
+                                        <?= $escaper->escapeHtml((string) $r['surface']) ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <a class="action-secondary"
+                                       href="<?= $escaper->escapeUrl($block->getViewUrl((string) $r['conversation_id'])) ?>">
+                                        <span><?= $escaper->escapeHtml(__('View')) ?></span>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="claudeai-credit">
+        <?= $escaper->escapeHtml(__('Designed & developed with')) ?> <span class="heart">♥</span>
+        <?= $escaper->escapeHtml(__('by')) ?> <a href="https://kishansavaliya.com" target="_blank" rel="noopener">Kishan Savaliya</a> · Panth Infotech
+    </div>
+</div>

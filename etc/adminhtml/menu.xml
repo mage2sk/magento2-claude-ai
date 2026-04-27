@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Panth_ClaudeAi — admin menu.
+ *
+ * Menu item IDs are deliberately prefixed with "ai_" so Magento's CSS-class
+ * generator (which uses only the last segment of the ID) doesn't collide
+ * with core's icon rules: a generic "dashboard" segment would inherit
+ * `.item-dashboard:before { content: '\e604' }` and render a stray glyph
+ * before our submenu link. See Magento\Backend\Block\Menu line 421.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Panth_ClaudeAi::ai_root"
+             title="Claude AI Automation"
+             module="Panth_ClaudeAi"
+             sortOrder="5"
+             parent="Panth_Core::panth_extensions"
+             resource="Panth_ClaudeAi::ai_dashboard"/>
+
+        <add id="Panth_ClaudeAi::ai_dashboard"
+             title="AI Dashboard"
+             module="Panth_ClaudeAi"
+             sortOrder="10"
+             parent="Panth_ClaudeAi::ai_root"
+             action="claudeai/dashboard/index"
+             resource="Panth_ClaudeAi::ai_dashboard"/>
+
+        <add id="Panth_ClaudeAi::ai_howto"
+             title="How to Use"
+             module="Panth_ClaudeAi"
+             sortOrder="15"
+             parent="Panth_ClaudeAi::ai_root"
+             action="claudeai/howto/index"
+             resource="Panth_ClaudeAi::ai_dashboard"/>
+
+        <add id="Panth_ClaudeAi::ai_chat"
+             title="Ask Claude"
+             module="Panth_ClaudeAi"
+             sortOrder="20"
+             parent="Panth_ClaudeAi::ai_root"
+             action="claudeai/chat/index"
+             resource="Panth_ClaudeAi::ai_chat"/>
+
+        <add id="Panth_ClaudeAi::ai_training"
+             title="Training Examples"
+             module="Panth_ClaudeAi"
+             sortOrder="30"
+             parent="Panth_ClaudeAi::ai_root"
+             action="claudeai/training/index"
+             resource="Panth_ClaudeAi::ai_training"/>
+
+        <add id="Panth_ClaudeAi::ai_conversations"
+             title="Conversations"
+             module="Panth_ClaudeAi"
+             sortOrder="35"
+             parent="Panth_ClaudeAi::ai_root"
+             action="claudeai/conversation/index"
+             resource="Panth_ClaudeAi::ai_conversations"/>
+
+        <add id="Panth_ClaudeAi::ai_activity"
+             title="Activity Log"
+             module="Panth_ClaudeAi"
+             sortOrder="40"
+             parent="Panth_ClaudeAi::ai_root"
+             action="claudeai/activity/index"
+             resource="Panth_ClaudeAi::ai_activity"/>
+
+        <add id="Panth_ClaudeAi::ai_checkpoint"
+             title="Checkpoints &amp; Restore"
+             module="Panth_ClaudeAi"
+             sortOrder="50"
+             parent="Panth_ClaudeAi::ai_root"
+             action="claudeai/checkpoint/index"
+             resource="Panth_ClaudeAi::ai_checkpoint"/>
+
+        <add id="Panth_ClaudeAi::ai_config"
+             title="Configuration"
+             module="Panth_ClaudeAi"
+             sortOrder="99"
+             parent="Panth_ClaudeAi::ai_root"
+             action="adminhtml/system_config/edit/section/panth_claudeai"
+             resource="Panth_ClaudeAi::ai_config"/>
+    </menu>
+</config>

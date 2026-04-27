@@ -1,0 +1,121 @@
+{
+    "panth_claudeai_activity": {
+        "column": {
+            "entity_id": true,
+            "conversation_id": true,
+            "actor_type": true,
+            "action": true,
+            "prompt": true,
+            "result": true,
+            "status": true,
+            "affected_count": true,
+            "duration_ms": true,
+            "input_tokens": true,
+            "output_tokens": true,
+            "cache_read_tokens": true,
+            "admin_user_id": true,
+            "created_at": true,
+            "checkpoint_id": true
+        },
+        "index": {
+            "PANTH_CLAUDEAI_ACTIVITY_CREATED_AT": true,
+            "PANTH_CLAUDEAI_ACTIVITY_ACTION": true,
+            "PANTH_CLAUDEAI_ACTIVITY_CONVERSATION_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "panth_claudeai_training": {
+        "column": {
+            "training_id": true,
+            "title": true,
+            "user_message": true,
+            "expected_outcome": true,
+            "category": true,
+            "status": true,
+            "sort_order": true,
+            "usage_count": true,
+            "admin_user_id": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "PANTH_CLAUDEAI_TRAINING_STATUS": true,
+            "PANTH_CLAUDEAI_TRAINING_CATEGORY": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "panth_claudeai_checkpoint": {
+        "column": {
+            "entity_id": true,
+            "checkpoint_id": true,
+            "conversation_id": true,
+            "op_type": true,
+            "entity_type": true,
+            "record_count": true,
+            "before_state": true,
+            "description": true,
+            "status": true,
+            "admin_user_id": true,
+            "created_at": true,
+            "restored_at": true
+        },
+        "index": {
+            "PANTH_CLAUDEAI_CHECKPOINT_STATUS": true,
+            "PANTH_CLAUDEAI_CHECKPOINT_CREATED_AT": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PANTH_CLAUDEAI_CHECKPOINT_CHECKPOINT_ID": true
+        }
+    },
+    "panth_claudeai_attachment": {
+        "column": {
+            "attachment_id": true,
+            "conversation_id": true,
+            "original_name": true,
+            "stored_path": true,
+            "mime_type": true,
+            "size_bytes": true,
+            "admin_user_id": true,
+            "created_at": true,
+            "scope": true,
+            "storefront_ip_hash": true
+        },
+        "index": {
+            "PANTH_CLAUDEAI_ATTACHMENT_CONVERSATION_ID": true,
+            "PANTH_CLAUDEAI_ATTACHMENT_SCOPE": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "panth_claudeai_message": {
+        "column": {
+            "message_id": true,
+            "conversation_id": true,
+            "sequence": true,
+            "role": true,
+            "surface": true,
+            "content_json": true,
+            "input_tokens": true,
+            "output_tokens": true,
+            "cache_read_tokens": true,
+            "cost_usd": true,
+            "model": true,
+            "admin_user_id": true,
+            "created_at": true
+        },
+        "index": {
+            "PANTH_CLAUDEAI_MESSAGE_CONVERSATION_ID": true,
+            "PANTH_CLAUDEAI_MESSAGE_CREATED_AT": true,
+            "PANTH_CLAUDEAI_MESSAGE_SURFACE": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}

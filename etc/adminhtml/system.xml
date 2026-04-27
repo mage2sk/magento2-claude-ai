@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="panth_extensions" translate="label" sortOrder="500">
+            <label>Panth Extensions</label>
+        </tab>
+
+        <section id="panth_claudeai" translate="label" type="text" sortOrder="10"
+                 showInDefault="1" showInWebsite="0" showInStore="0">
+            <label>Claude AI — Magento Automation</label>
+            <tab>panth_extensions</tab>
+            <resource>Panth_ClaudeAi::config_section</resource>
+
+            <!-- API CREDENTIALS -->
+            <group id="api" translate="label" type="text" sortOrder="10"
+                   showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>1. API Credentials</label>
+                <comment><![CDATA[Get your API key at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>. New accounts get $5 free credit. Stored encrypted.]]></comment>
+                <field id="api_key" translate="label comment" type="obscure" sortOrder="10"
+                       showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Anthropic API Key</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <comment>Required. Starts with sk-ant-api…</comment>
+                </field>
+            </group>
+
+            <!-- GENERAL -->
+            <group id="general" translate="label" type="text" sortOrder="20"
+                   showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>2. General Settings</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1">
+                    <label>Enable Module (Master Switch)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Turn off to disable everything — admin chat, launcher, and tools.</comment>
+                </field>
+                <field id="model" translate="label comment" type="select" sortOrder="20" showInDefault="1">
+                    <label>Claude Model</label>
+                    <source_model>Panth\ClaudeAi\Model\Source\Model</source_model>
+                    <comment>Opus 4.7 = most capable. Sonnet = faster &amp; cheaper. Haiku = fastest.</comment>
+                </field>
+                <field id="effort" translate="label comment" type="select" sortOrder="30" showInDefault="1">
+                    <label>Effort Level</label>
+                    <source_model>Panth\ClaudeAi\Model\Source\Effort</source_model>
+                    <comment>How hard the AI thinks. "High" is the recommended default.</comment>
+                </field>
+                <field id="max_tokens" translate="label" type="text" sortOrder="40" showInDefault="1">
+                    <label>Max Output Tokens per Reply</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+                <field id="max_iterations" translate="label comment" type="text" sortOrder="50" showInDefault="1">
+                    <label>Max Tool Calls per Question</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                    <comment>How many actions the AI may chain before stopping. Default 8.</comment>
+                </field>
+                <field id="api_timeout" translate="label" type="text" sortOrder="60" showInDefault="1">
+                    <label>API Timeout (seconds)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                </field>
+            </group>
+
+            <!-- SAFETY -->
+            <group id="safety" translate="label" type="text" sortOrder="30" showInDefault="1">
+                <label>3. Safety</label>
+                <field id="dry_run" translate="label comment" type="select" sortOrder="10" showInDefault="1">
+                    <label>Dry Run Mode (no real writes)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>When ON, the AI shows what it WOULD change without touching data. Great for first-time use.</comment>
+                </field>
+                <field id="max_bulk_update" translate="label comment" type="text" sortOrder="20" showInDefault="1">
+                    <label>Max Items per Bulk Action</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                    <comment>Hard cap on how many products one AI command can change.</comment>
+                </field>
+                <field id="rate_limit_per_hour" translate="label comment" type="text" sortOrder="30" showInDefault="1">
+                    <label>Admin Rate Limit (questions/hour)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                    <comment>Stops accidental loops from burning API credit.</comment>
+                </field>
+                <field id="require_confirmation" translate="label comment" type="select" sortOrder="40" showInDefault="1">
+                    <label>Require Confirmation Before Writes</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>When ON, the AI must preview every bulk write (count + sample names) and wait for an explicit "yes" / "go ahead" before changing data.</comment>
+                </field>
+                <field id="confirmation_threshold" translate="label comment" type="text" sortOrder="50" showInDefault="1">
+                    <label>Confirmation Threshold</label>
+                    <validate>validate-number</validate>
+                    <comment>Minimum item count that triggers confirmation. Writes affecting fewer items run without prompting. Default: 5.</comment>
+                </field>
+            </group>
+
+            <!-- TOOL TOGGLES -->
+            <group id="tools" translate="label comment" type="text" sortOrder="40" showInDefault="1">
+                <label>4. Tool Capabilities (enable / disable per ability)</label>
+                <comment>Tools you turn off are removed from the AI's catalog — it can't call them at all.</comment>
+                <field id="get_products" translate="label" type="select" sortOrder="10" showInDefault="1">
+                    <label>Search products</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="update_product_price" translate="label" type="select" sortOrder="20" showInDefault="1">
+                    <label>Update product prices</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="update_product_status" translate="label" type="select" sortOrder="30" showInDefault="1">
+                    <label>Enable / disable products</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="update_inventory" translate="label" type="select" sortOrder="40" showInDefault="1">
+                    <label>Adjust stock quantities</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="store_insights" translate="label" type="select" sortOrder="50" showInDefault="1">
+                    <label>Customer &amp; order insights</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="get_low_stock_products" translate="label" type="select" sortOrder="60" showInDefault="1">
+                    <label>Find low-stock products</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="store_info" translate="label" type="select" sortOrder="70" showInDefault="1">
+                    <label>Read store info</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cache_reindex" translate="label" type="select" sortOrder="80" showInDefault="1">
+                    <label>Flush caches &amp; reindex</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="restore_checkpoint" translate="label" type="select" sortOrder="90" showInDefault="1">
+                    <label>Undo / restore checkpoints</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
+            <!-- LOGGING -->
+            <group id="logging" translate="label" type="text" sortOrder="60" showInDefault="1">
+                <label>6. Logging &amp; Retention</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1">
+                    <label>Enable Activity Log</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="retention_days" translate="label comment" type="text" sortOrder="20" showInDefault="1">
+                    <label>Activity Retention (days)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                    <comment>Older entries auto-pruned by daily cron. Default 90.</comment>
+                </field>
+                <field id="checkpoint_retention_days" translate="label comment" type="text" sortOrder="30" showInDefault="1">
+                    <label>Checkpoint Retention (days)</label>
+                    <validate>validate-number validate-greater-than-zero</validate>
+                    <comment>Older un-restored checkpoints auto-pruned. Default 30.</comment>
+                </field>
+                <field id="file_logger" translate="label" type="select" sortOrder="40" showInDefault="1">
+                    <label>Write to var/log/panth_claudeai.log</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

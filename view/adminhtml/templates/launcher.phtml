@@ -1,0 +1,389 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\AiLauncher $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<style>
+.claudeai-launcher {
+    position: fixed; bottom: 20px; right: 20px; z-index: 900;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: #eb5202; color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.18); border: none;
+    transition: transform .15s, box-shadow .15s;
+}
+.claudeai-launcher:hover { transform: scale(1.08); box-shadow: 0 6px 22px rgba(0,0,0,.25); }
+.claudeai-launcher:focus { outline: 2px solid #fff3e6; outline-offset: 2px; }
+.claudeai-launcher.is-open { transform: rotate(45deg); }
+.claudeai-launcher-tip {
+    position: absolute; right: 64px; top: 50%; transform: translateY(-50%);
+    background: #303030; color: #fff; font-size: 12px;
+    padding: 6px 10px; border-radius: 3px; white-space: nowrap;
+    opacity: 0; pointer-events: none; transition: opacity .15s;
+}
+.claudeai-launcher:hover .claudeai-launcher-tip { opacity: 1; }
+.claudeai-launcher.is-open .claudeai-launcher-tip { display: none; }
+
+.claudeai-widget {
+    position: fixed; bottom: 86px; right: 20px; z-index: 899;
+    width: 380px; max-width: calc(100vw - 32px);
+    height: 560px; max-height: calc(100vh - 110px);
+    background: #fff; border: 1px solid #e3e3e3; border-radius: 8px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.18);
+    display: none; flex-direction: column; overflow: hidden;
+    font-family: 'Open Sans', sans-serif;
+}
+.claudeai-widget.is-open { display: flex; }
+.claudeai-widget-header {
+    padding: 12px 14px; background: #303030; color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+}
+.claudeai-widget-header .title { font-weight: 600; font-size: 14px; }
+.claudeai-widget-header .meta { font-size: 11px; opacity: .8; margin-top: 2px; }
+.claudeai-widget-header .actions a {
+    color: #fde2c4; font-size: 11px; margin-left: 10px; text-decoration: none;
+}
+.claudeai-widget-header .actions a:hover { color: #fff; text-decoration: underline; }
+.claudeai-widget-feed {
+    flex: 1; overflow-y: auto; padding: 12px 14px;
+    background: #fafafa;
+}
+.claudeai-widget-empty {
+    text-align: center; color: #777; font-size: 12px; padding: 30px 10px;
+}
+.claudeai-widget-empty h4 { margin: 0 0 6px; font-size: 14px; color: #303030; }
+.cw-bubble {
+    max-width: 88%; padding: 8px 12px; border-radius: 10px;
+    margin-bottom: 8px; font-size: 13px; line-height: 1.4;
+    word-wrap: break-word; word-break: break-word;
+}
+.cw-bubble--user {
+    margin-left: auto; background: #303030; color: #fff;
+    border-bottom-right-radius: 2px;
+}
+.cw-bubble--ai {
+    background: #fff; border: 1px solid #e3e3e3; color: #303030;
+    border-bottom-left-radius: 2px;
+}
+.cw-bubble--err {
+    background: #fff5f5; border: 1px solid #f5c6c6; color: #b30000;
+}
+.cw-bubble pre {
+    background: #f5f5f5; padding: 6px; border-radius: 3px;
+    font-size: 11px; overflow-x: auto; margin: 6px 0;
+}
+.cw-bubble code {
+    background: #f5f5f5; padding: 1px 4px; border-radius: 2px;
+    font-size: 11px;
+}
+.cw-bubble .meta {
+    margin-top: 6px; font-size: 10px; color: #999;
+    font-family: Menlo, monospace;
+}
+.cw-bubble img.attached {
+    max-width: 100%; border-radius: 4px; margin-top: 6px; display: block;
+}
+.cw-tool {
+    margin-bottom: 6px; padding: 6px 10px; font-size: 11px;
+    background: #fff; border-left: 3px solid #5e7ce2;
+    color: #555; border-radius: 0 4px 4px 0;
+}
+.cw-tool code { color: #5e7ce2; font-weight: 600; }
+.cw-tool.cw-tool--err { border-left-color: #d93b3b; }
+.cw-dots span {
+    display: inline-block; width: 6px; height: 6px; margin: 0 2px;
+    background: #aaa; border-radius: 50%;
+    animation: cwblink 1.2s infinite;
+}
+.cw-dots span:nth-child(2) { animation-delay: .2s; }
+.cw-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes cwblink { 0%, 80% { opacity: .3 } 40% { opacity: 1 } }
+.claudeai-widget-attachments {
+    display: none; gap: 6px; padding: 8px 12px;
+    background: #fff; border-top: 1px solid #eee;
+    flex-wrap: wrap; flex-shrink: 0;
+}
+.cw-att {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 8px; background: #fafafa;
+    border: 1px solid #e3e3e3; border-radius: 12px;
+    font-size: 11px; max-width: 200px;
+}
+.cw-att img { width: 22px; height: 22px; object-fit: cover; border-radius: 3px; }
+.cw-att .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cw-att .rm {
+    background: none; border: none; color: #999; cursor: pointer;
+    font-size: 14px; padding: 0; line-height: 1;
+}
+.cw-att .rm:hover { color: #d93b3b; }
+.claudeai-widget-form {
+    display: flex; gap: 6px; padding: 10px 12px;
+    border-top: 1px solid #e3e3e3; background: #fff; flex-shrink: 0;
+}
+.claudeai-widget-form .attach-btn {
+    cursor: pointer; padding: 6px; color: #777;
+    display: flex; align-items: center; justify-content: center;
+}
+.claudeai-widget-form .attach-btn:hover { color: #eb5202; }
+.claudeai-widget-form textarea {
+    flex: 1; resize: none; min-height: 32px; max-height: 120px;
+    border: 1px solid #d4d4d4; border-radius: 4px;
+    padding: 6px 8px; font-size: 13px; font-family: inherit;
+}
+.claudeai-widget-form button {
+    background: #eb5202; color: #fff; border: none;
+    padding: 0 14px; border-radius: 4px; cursor: pointer; font-weight: 600;
+    font-size: 12px; flex-shrink: 0;
+}
+.claudeai-widget-form button:hover { background: #ba4002; }
+.claudeai-widget-form button:disabled { background: #ccc; cursor: not-allowed; }
+@media print { .claudeai-launcher, .claudeai-widget { display: none !important; } }
+</style>
+
+<button type="button"
+        class="claudeai-launcher"
+        id="claudeai-launcher-btn"
+        title="<?= $escaper->escapeHtmlAttr(__('Ask Claude AI')) ?>"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Open Ask Claude chat')) ?>"
+        aria-expanded="false">
+    <span class="claudeai-launcher-tip"><?= $escaper->escapeHtml(__('Ask Claude AI')) ?></span>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+    </svg>
+</button>
+
+<div class="claudeai-widget" id="claudeai-widget" role="dialog" aria-label="<?= $escaper->escapeHtmlAttr(__('Ask Claude')) ?>">
+    <div class="claudeai-widget-header">
+        <div>
+            <div class="title"><?= $escaper->escapeHtml(__('Ask Claude AI')) ?></div>
+            <div class="meta">
+                <?= $escaper->escapeHtml($block->getModel()) ?>
+                <?php if ($block->isDryRun()): ?>
+                    · <?= $escaper->escapeHtml(__('Dry run')) ?>
+                <?php endif; ?>
+            </div>
+        </div>
+        <div class="actions">
+            <a href="<?= $escaper->escapeUrl($block->getFullChatUrl()) ?>" target="_blank"
+               title="<?= $escaper->escapeHtmlAttr(__('Open full page')) ?>">
+                <?= $escaper->escapeHtml(__('Full page ↗')) ?>
+            </a>
+        </div>
+    </div>
+    <div class="claudeai-widget-feed" id="cw-feed">
+        <div class="claudeai-widget-empty">
+            <h4><?= $escaper->escapeHtml(__('Hi! I\'m Claude.')) ?></h4>
+            <p><?= $escaper->escapeHtml(__('Ask anything about your store — search products, find customers, check stock, update prices in bulk.')) ?></p>
+        </div>
+    </div>
+    <div class="claudeai-widget-attachments" id="cw-attachments"></div>
+    <form class="claudeai-widget-form" id="cw-form">
+        <label class="attach-btn" title="<?= $escaper->escapeHtmlAttr(__('Attach a file')) ?>">
+            <input type="file" id="cw-file"
+                   accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.json,.xml,.md,.log,.zip"
+                   hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </label>
+        <textarea id="cw-input" rows="1"
+                  placeholder="<?= $escaper->escapeHtmlAttr(__('Ask Claude…')) ?>"></textarea>
+        <button type="submit" id="cw-send"><?= $escaper->escapeHtml(__('Send')) ?></button>
+    </form>
+</div>
+
+<script>
+(function () {
+    'use strict';
+    const SEND_URL   = <?= json_encode($block->getSendUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+    const UPLOAD_URL = <?= json_encode($block->getUploadUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+    const FORM_KEY   = <?= json_encode($block->getFormKey(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+
+    const launcherBtn = document.getElementById('claudeai-launcher-btn');
+    const widget      = document.getElementById('claudeai-widget');
+    const feed        = document.getElementById('cw-feed');
+    const input       = document.getElementById('cw-input');
+    const sendBtn     = document.getElementById('cw-send');
+    const form        = document.getElementById('cw-form');
+    const fileIn      = document.getElementById('cw-file');
+    const attBox      = document.getElementById('cw-attachments');
+
+    if (!launcherBtn || !widget) return;
+
+    let conversation = [];
+    let conversationId = '';
+    let pendingAttachments = [];
+
+    function toggle(open) {
+        const willOpen = open !== undefined ? open : !widget.classList.contains('is-open');
+        widget.classList.toggle('is-open', willOpen);
+        launcherBtn.classList.toggle('is-open', willOpen);
+        launcherBtn.setAttribute('aria-expanded', String(willOpen));
+        if (willOpen) setTimeout(() => input?.focus(), 50);
+    }
+
+    launcherBtn.addEventListener('click', () => toggle());
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && widget.classList.contains('is-open')) toggle(false);
+    });
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function clearEmpty() { const e = feed.querySelector('.claudeai-widget-empty'); if (e) e.remove(); }
+    function bubble(role, html) {
+        clearEmpty();
+        const wrap = document.createElement('div');
+        wrap.className = 'cw-bubble cw-bubble--' + role;
+        wrap.innerHTML = html;
+        feed.appendChild(wrap);
+        feed.scrollTop = feed.scrollHeight;
+        return wrap;
+    }
+    function toolChip(name, summary, status) {
+        clearEmpty();
+        const wrap = document.createElement('div');
+        wrap.className = 'cw-tool' + (status === 'error' ? ' cw-tool--err' : '');
+        wrap.innerHTML = '<code>' + esc(name) + '</code> ' + esc(summary || '');
+        feed.appendChild(wrap);
+        feed.scrollTop = feed.scrollHeight;
+    }
+    function thinking() {
+        clearEmpty();
+        const wrap = document.createElement('div');
+        wrap.className = 'cw-bubble cw-bubble--ai';
+        wrap.innerHTML = '<span class="cw-dots"><span></span><span></span><span></span></span>';
+        feed.appendChild(wrap);
+        feed.scrollTop = feed.scrollHeight;
+        return wrap;
+    }
+    function md(text) {
+        let s = esc(text);
+        s = s.replace(/```([\s\S]*?)```/g, (_, c) => '<pre>' + c + '</pre>');
+        s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+        s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        s = s.replace(/\n/g, '<br>');
+        return s;
+    }
+    function renderAttachments() {
+        if (!pendingAttachments.length) {
+            attBox.style.display = 'none'; attBox.innerHTML = ''; return;
+        }
+        attBox.style.display = 'flex';
+        attBox.innerHTML = pendingAttachments.map((a, i) => {
+            const thumb = a.preview_url
+                ? '<img src="' + esc(a.preview_url) + '" alt="">'
+                : '<span>' + (a.is_pdf ? '📄' : a.is_text ? '📝' : '📎') + '</span>';
+            return '<div class="cw-att">' + thumb +
+                '<span class="name">' + esc(a.name) + '</span>' +
+                '<button type="button" class="rm" data-rm="' + i + '">×</button>' +
+                '</div>';
+        }).join('');
+        attBox.querySelectorAll('[data-rm]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                pendingAttachments.splice(parseInt(btn.dataset.rm, 10), 1);
+                renderAttachments();
+            });
+        });
+    }
+    async function uploadFile(file) {
+        if (file.size > 20 * 1024 * 1024) { bubble('err', 'File too large. Max 20 MB.'); return; }
+        const fd = new FormData();
+        fd.append('file', file); fd.append('form_key', FORM_KEY);
+        fd.append('conversation_id', conversationId);
+        try {
+            const resp = await fetch(UPLOAD_URL, { method: 'POST', credentials: 'include', body: fd });
+            const data = await resp.json();
+            if (!data.success) { bubble('err', esc(data.error || 'Upload failed.')); return; }
+            const att = {
+                name: data.name, mime: data.mime, size: data.size, url: data.url,
+                is_image: data.is_image, is_pdf: data.is_pdf, is_text: data.is_text,
+                claude_can_see: data.claude_can_see, claude_block: data.claude_block,
+            };
+            if (data.is_image && data.claude_block && data.claude_block.source) {
+                att.preview_url = 'data:' + data.claude_block.source.media_type + ';base64,' + data.claude_block.source.data;
+            }
+            pendingAttachments.push(att);
+            renderAttachments();
+        } catch (e) {
+            bubble('err', 'Could not upload that file.');
+        }
+    }
+    async function send(message) {
+        const attHtml = pendingAttachments.map(a => a.preview_url
+            ? '<img class="attached" src="' + esc(a.preview_url) + '" alt="">'
+            : '<div style="margin-top:4px;font-size:11px;opacity:.8">📎 ' + esc(a.name) + '</div>'
+        ).join('');
+        bubble('user', esc(message) + attHtml);
+        const sentAttachments = pendingAttachments.slice();
+        pendingAttachments = [];
+        renderAttachments();
+        input.value = ''; input.style.height = 'auto';
+        sendBtn.disabled = true;
+        const t = thinking();
+        try {
+            const apiAttachments = sentAttachments.map(a => ({ claude_block: a.claude_block, name: a.name }));
+            const resp = await fetch(SEND_URL, {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({
+                    message, attachments: apiAttachments, history: conversation,
+                    conversation_id: conversationId, form_key: FORM_KEY,
+                }),
+            });
+            const data = await resp.json();
+            t.remove();
+            if (!data.success) { bubble('err', '<strong>Error:</strong> ' + esc(data.error || 'Unknown error')); return; }
+            conversationId = data.conversation_id || conversationId;
+            conversation = data.conversation || conversation;
+            (data.tool_calls || []).forEach(c => {
+                const summary = (c.output && (c.output.summary || c.output.message)) || '';
+                const status  = (c.output && c.output.status) || 'success';
+                toolChip(c.name, summary, status);
+            });
+            const aiBubble = bubble('ai', md(data.text || '(no reply)'));
+            const u = data.usage || {};
+            const cost = data.cost_display || '';
+            const meta = (data.iterations ? 'iter ' + data.iterations : '') +
+                (u.input ? ' · in ' + u.input : '') +
+                (u.output ? ' · out ' + u.output : '') +
+                (cost ? ' · ' + cost : '');
+            if (meta && aiBubble) {
+                aiBubble.insertAdjacentHTML('beforeend', '<div class="meta">' + esc(meta) + '</div>');
+            }
+        } catch (e) {
+            t.remove();
+            bubble('err', '<strong>Network error:</strong> ' + esc(e.message));
+        } finally {
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    }
+    input?.addEventListener('input', () => {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    });
+    function shouldSend() { return input.value.trim() !== '' || pendingAttachments.length > 0; }
+    input?.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (shouldSend()) send(input.value.trim());
+        }
+    });
+    form?.addEventListener('submit', e => {
+        e.preventDefault();
+        if (shouldSend()) send(input.value.trim());
+    });
+    fileIn?.addEventListener('change', e => {
+        const f = e.target.files && e.target.files[0];
+        if (f) uploadFile(f);
+        e.target.value = '';
+    });
+})();
+</script>

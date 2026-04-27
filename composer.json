@@ -1,0 +1,50 @@
+{
+    "name": "mage2kishan/magento2-claude-ai",
+    "description": "Magento 2 Automation with Claude AI — natural-language store management. Update prices, query catalog, surface insights, all by asking in plain English. Powered by Anthropic's Claude API with tool use.",
+    "type": "magento2-module",
+    "license": "MIT",
+    "version": "1.1.0",
+    "keywords": [
+        "magento2",
+        "magento2-module",
+        "claude",
+        "anthropic",
+        "ai",
+        "automation",
+        "natural-language",
+        "panth"
+    ],
+    "homepage": "https://kishansavaliya.com",
+    "support": {
+        "email": "kishansavaliyakb@gmail.com",
+        "source": "https://github.com/mage2sk/magento2-claude-ai"
+    },
+    "authors": [
+        {
+            "name": "Kishan Savaliya",
+            "email": "kishansavaliyakb@gmail.com",
+            "homepage": "https://kishansavaliya.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "~8.1.0||~8.2.0||~8.3.0||~8.4.0",
+        "magento/framework": "^103.0",
+        "magento/module-backend": "^102.0",
+        "magento/module-catalog": "^104.0",
+        "magento/module-customer": "^103.0",
+        "magento/module-sales": "^103.0",
+        "magento/module-store": "^101.0",
+        "magento/module-config": "^101.0",
+        "magento/module-ui": "^101.0",
+        "mage2kishan/module-core": "^1.0"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Panth\\ClaudeAi\\": ""
+        }
+    }
+}

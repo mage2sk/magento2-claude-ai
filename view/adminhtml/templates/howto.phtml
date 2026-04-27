@@ -1,0 +1,133 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Howto $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$configured = $block->isConfigured();
+$dryRun     = $block->isDryRun();
+?>
+<div class="claudeai-page" style="max-width:920px">
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title">
+                1. <?= $escaper->escapeHtml(__('Get a free API key')) ?>
+                <span class="claudeai-status-pill <?= $configured ? 'claudeai-status-ok' : '' ?>" style="margin-left:8px;<?= $configured ? '' : 'background:#fff3e6;color:#9b4400' ?>">
+                    <?= $configured ? '✓ ' . $escaper->escapeHtml(__('Done')) : $escaper->escapeHtml(__('To do')) ?>
+                </span>
+            </span>
+        </div>
+        <div class="admin__page-section-content">
+            <p><?= $escaper->escapeHtml(__('Claude is the AI engine. Anthropic gives every new account')) ?> <strong>$5 <?= $escaper->escapeHtml(__('of free credit')) ?></strong> — <?= $escaper->escapeHtml(__('enough for thousands of questions.')) ?></p>
+            <ol>
+                <li><?= /* @noEscape */ __('Open <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> in a new tab.') ?></li>
+                <li><?= $escaper->escapeHtml(__('Sign up (free). No credit card needed.')) ?></li>
+                <li><?= /* @noEscape */ __('Click <strong>Create Key</strong>. Copy the key (starts with <code>sk-ant-api...</code>).') ?></li>
+                <li><?= /* @noEscape */ __('Paste it in') ?> <a href="<?= $escaper->escapeUrl($block->getConfigUrl()) ?>"><strong><?= $escaper->escapeHtml(__('Configuration')) ?></strong></a> <?= $escaper->escapeHtml(__('and save.')) ?></li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title">
+                2. <?= $escaper->escapeHtml(__('Stay safe with Dry Run mode')) ?>
+                <span class="claudeai-status-pill <?= $dryRun ? 'claudeai-status-ok' : '' ?>" style="margin-left:8px;<?= $dryRun ? '' : 'background:#fff3e6;color:#9b4400' ?>">
+                    <?= $dryRun ? 'ON' : 'OFF' ?>
+                </span>
+            </span>
+        </div>
+        <div class="admin__page-section-content">
+            <p><?= /* @noEscape */ __('<strong>Dry Run mode</strong> means: the AI tells you what it WOULD change, but doesn\'t touch your data. Use it for your first experiments.') ?></p>
+            <?php if (!$dryRun): ?>
+                <div class="message message-warning">
+                    <span><?= /* @noEscape */ __('Dry Run is currently <strong>OFF</strong>. Any write the AI does will be real. Toggle it in') ?>
+                        <a href="<?= $escaper->escapeUrl($block->getConfigUrl()) ?>"><?= $escaper->escapeHtml(__('Configuration → Safety')) ?></a>.
+                    </span>
+                </div>
+            <?php else: ?>
+                <div class="message message-success">
+                    <span><?= /* @noEscape */ __('Dry Run is ON. The AI won\'t make real changes until you turn it off in') ?>
+                        <a href="<?= $escaper->escapeUrl($block->getConfigUrl()) ?>"><?= $escaper->escapeHtml(__('Configuration → Safety')) ?></a>.
+                    </span>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title">3. <?= $escaper->escapeHtml(__('Ask your first question')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p><?= /* @noEscape */ __('Open') ?> <a href="<?= $escaper->escapeUrl($block->getChatUrl()) ?>"><strong><?= $escaper->escapeHtml(__('Ask Claude')) ?></strong></a> <?= $escaper->escapeHtml(__('and try one of these:')) ?></p>
+            <ul style="background:#fffaf6;padding:14px 14px 14px 32px;border-radius:3px;border:1px solid #fde2c4">
+                <li><em>"How many products do I have?"</em></li>
+                <li><em>"Show me the 5 most recent orders"</em></li>
+                <li><em>"Find all products with the word 'hoodie' in the name"</em></li>
+                <li><em>"Which products have less than 3 in stock?"</em></li>
+                <li><em>"Make every t-shirt cost $24.99"</em></li>
+            </ul>
+            <p class="claudeai-help"><?= /* @noEscape */ __('That last one is a write — the AI will tell you exactly which products it\'ll touch and create an undo point first. If anything looks wrong, just say <strong>"undo"</strong>.') ?></p>
+        </div>
+    </div>
+
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title">4. <?= $escaper->escapeHtml(__('Teach the AI your conventions (optional)')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p><?= /* @noEscape */ __('Every shop has its own slang. Add') ?> <a href="<?= $escaper->escapeUrl($block->getTrainingUrl()) ?>"><strong><?= $escaper->escapeHtml(__('Training Examples')) ?></strong></a> <?= $escaper->escapeHtml(__('so the AI learns your terms. Example:')) ?></p>
+            <ul>
+                <li><strong><?= $escaper->escapeHtml(__('Title:')) ?></strong> Discount our flagship line</li>
+                <li><strong><?= $escaper->escapeHtml(__('Merchant says:')) ?></strong> Apply 15% off to flagship</li>
+                <li><strong><?= $escaper->escapeHtml(__('You should:')) ?></strong> Search for products tagged 'flagship' (SKU starts with FS-), confirm count, then apply percent_change=-15.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title">5. <?= $escaper->escapeHtml(__('Undo anything you didn\'t mean')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p><?= /* @noEscape */ __('Every write — price, status, stock — creates a <strong>checkpoint</strong> automatically. Just say <strong>"undo"</strong> in chat. Or open the <strong>Checkpoints &amp; Restore</strong> page from the menu and click Restore on any change.') ?></p>
+        </div>
+    </div>
+
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title">6. <?= $escaper->escapeHtml(__('Floating launcher on every admin page')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p><?= $escaper->escapeHtml(__('A small ✨ button appears in the bottom-right corner of every admin page. Click it to open the chat without leaving whatever screen you\'re on — same UX as Magento\'s global search.')) ?></p>
+            <p class="claudeai-help"><?= $escaper->escapeHtml(__('Hidden automatically for admin users without the Claude AI ACL resource. To turn it off entirely, visit Configuration and set the master switch to No.')) ?></p>
+        </div>
+    </div>
+
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title">7. <?= $escaper->escapeHtml(__('Common questions')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p><strong><?= $escaper->escapeHtml(__('Will this cost me money?')) ?></strong><br>
+                <?= $escaper->escapeHtml(__('Anthropic gives $5 free on signup — roughly 5,000 questions for a typical store. Most stores spend $1-3/month after that.')) ?></p>
+
+            <p><strong><?= $escaper->escapeHtml(__('Can the AI break my store?')) ?></strong><br>
+                <?= $escaper->escapeHtml(__('No. It can only do things your config allows (toggle each capability in Configuration → Tool Capabilities). It can\'t delete data, send emails, refund payments, or change shipping. Every write creates an undo point.')) ?></p>
+
+            <p><strong><?= $escaper->escapeHtml(__('Is my data shared with Anthropic?')) ?></strong><br>
+                <?= $escaper->escapeHtml(__('Only your prompts and the data the AI explicitly looks up get sent. Anthropic does not train models on this data by default. Your API key is encrypted in the database.')) ?></p>
+
+            <p><strong><?= $escaper->escapeHtml(__('What if I get an error?')) ?></strong><br>
+                <?= /* @noEscape */ __('Check the <strong>Activity Log</strong> page — every prompt, tool call, and reply is logged. Power users can also tail <code>var/log/panth_claudeai.log</code>.') ?></p>
+
+            <p><strong><?= $escaper->escapeHtml(__('Can shoppers chat with the AI too?')) ?></strong><br>
+                <?= $escaper->escapeHtml(__('Yes — turn on the Storefront Shop Assistant widget in Configuration. It\'s read-only (can search products and answer store questions, but can\'t change anything). Add the widget block in CMS pages or layout XML.')) ?></p>
+        </div>
+    </div>
+
+    <div class="claudeai-credit">
+        <?= $escaper->escapeHtml(__('Designed & developed with')) ?> <span class="heart">♥</span>
+        <?= $escaper->escapeHtml(__('by')) ?> <a href="https://kishansavaliya.com" target="_blank" rel="noopener">Kishan Savaliya</a> · Panth Infotech
+    </div>
+</div>

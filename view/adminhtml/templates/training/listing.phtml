@@ -1,0 +1,80 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Training\Listing $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$items = $block->getTrainingItems();
+?>
+<div class="claudeai-page">
+    <div class="page-actions">
+        <div class="page-actions-inner">
+            <div class="page-actions-buttons">
+                <a href="<?= $escaper->escapeUrl($block->getNewUrl()) ?>" class="action-primary">
+                    <span><?= $escaper->escapeHtml(__('Add training example')) ?></span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Training examples')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p class="claudeai-help">
+                <?= $escaper->escapeHtml(__('Examples teach Claude store-specific terminology, workflows, and merchant preferences. Each active row gets injected into the AI\'s system prompt.')) ?>
+            </p>
+
+            <?php if (empty($items)): ?>
+                <div class="claudeai-empty">
+                    <p><strong><?= $escaper->escapeHtml(__('No training examples yet.')) ?></strong></p>
+                    <p class="claudeai-help"><?= $escaper->escapeHtml(__('Add your first one to teach Claude how YOUR store works.')) ?></p>
+                </div>
+            <?php else: ?>
+                <table class="data-grid">
+                    <thead>
+                        <tr>
+                            <th style="width:60px">ID</th>
+                            <th><?= $escaper->escapeHtml(__('Title')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Category')) ?></th>
+                            <th><?= $escaper->escapeHtml(__('Merchant says')) ?></th>
+                            <th style="width:80px;text-align:right"><?= $escaper->escapeHtml(__('Used')) ?></th>
+                            <th style="width:90px"><?= $escaper->escapeHtml(__('Status')) ?></th>
+                            <th style="width:140px;text-align:right"><?= $escaper->escapeHtml(__('Actions')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($items as $t): ?>
+                            <tr>
+                                <td>#<?= (int) $t->getId() ?></td>
+                                <td><strong><?= $escaper->escapeHtml((string) $t->getData('title')) ?></strong></td>
+                                <td><?= $escaper->escapeHtml((string) $t->getData('category')) ?></td>
+                                <td><?= $escaper->escapeHtml(mb_strimwidth((string) $t->getData('user_message'), 0, 100, '…')) ?></td>
+                                <td style="text-align:right"><?= (int) $t->getData('usage_count') ?></td>
+                                <td>
+                                    <?php if ((int) $t->getData('status') === 1): ?>
+                                        <span class="claudeai-status-pill claudeai-status-ok"><?= $escaper->escapeHtml(__('Active')) ?></span>
+                                    <?php else: ?>
+                                        <span class="claudeai-status-pill" style="background:#e8e8e8;color:#555"><?= $escaper->escapeHtml(__('Disabled')) ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="text-align:right">
+                                    <a href="<?= $escaper->escapeUrl($block->getEditUrl((int) $t->getId())) ?>"><?= $escaper->escapeHtml(__('Edit')) ?></a>
+                                    <span style="color:#ccc"> · </span>
+                                    <a href="<?= $escaper->escapeUrl($block->getDeleteUrl((int) $t->getId())) ?>"
+                                       onclick="return confirm('<?= $escaper->escapeJs(__('Delete this training example?')) ?>')"
+                                       style="color:#b30000"><?= $escaper->escapeHtml(__('Delete')) ?></a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="claudeai-credit">
+        <?= $escaper->escapeHtml(__('Designed & developed with')) ?> <span class="heart">♥</span>
+        <?= $escaper->escapeHtml(__('by')) ?> <a href="https://kishansavaliya.com" target="_blank" rel="noopener">Kishan Savaliya</a> · Panth Infotech
+    </div>
+</div>

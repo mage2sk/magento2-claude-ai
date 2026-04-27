@@ -1,0 +1,167 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Dashboard $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$stats = $block->getStats();
+$successLabel = $stats['success_rate'] >= 95 ? 'Excellent' : ($stats['success_rate'] >= 80 ? 'Good' : 'Needs review');
+?>
+<div class="claudeai-dashboard">
+    <?php if (!$block->isConfigured()): ?>
+        <div class="message message-warning">
+            <span><strong><?= $escaper->escapeHtml(__('Heads up')) ?></strong> —
+                Claude AI is not configured yet. Add your Anthropic API key in
+                <a href="<?= $escaper->escapeUrl($block->getConfigUrl()) ?>">Configuration</a>
+                to start using the assistant.
+            </span>
+        </div>
+    <?php endif; ?>
+
+    <!-- Action toolbar -->
+    <div class="page-actions">
+        <div class="page-actions-inner">
+            <div class="page-actions-buttons">
+                <a href="<?= $escaper->escapeUrl($block->getChatUrl()) ?>" class="action-primary">
+                    <span><?= $escaper->escapeHtml(__('Open Ask Claude')) ?></span>
+                </a>
+                <a href="<?= $escaper->escapeUrl($block->getActivityUrl()) ?>" class="action-default">
+                    <span><?= $escaper->escapeHtml(__('Activity Log')) ?></span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Overview')) ?></span>
+        </div>
+        <div class="claudeai-kpi-row">
+            <div class="claudeai-kpi">
+                <div class="claudeai-kpi-label"><?= $escaper->escapeHtml(__('TOTAL AUTOMATIONS')) ?></div>
+                <div class="claudeai-kpi-value"><?= (int) $stats['total_automations'] ?></div>
+                <div class="claudeai-kpi-sub"><?= $escaper->escapeHtml(__('All time')) ?></div>
+            </div>
+            <div class="claudeai-kpi">
+                <div class="claudeai-kpi-label"><?= $escaper->escapeHtml(__('TASKS EXECUTED')) ?></div>
+                <div class="claudeai-kpi-value"><?= (int) $stats['tasks_executed'] ?></div>
+                <div class="claudeai-kpi-sub"><?= (int) $stats['today_count'] ?> <?= $escaper->escapeHtml(__('today')) ?></div>
+            </div>
+            <div class="claudeai-kpi">
+                <div class="claudeai-kpi-label"><?= $escaper->escapeHtml(__('TIME SAVED (EST.)')) ?></div>
+                <div class="claudeai-kpi-value"><?= $escaper->escapeHtml((string) $stats['time_saved_hours']) ?>h</div>
+                <div class="claudeai-kpi-sub"><?= $escaper->escapeHtml(__('~3 min per automation')) ?></div>
+            </div>
+            <div class="claudeai-kpi">
+                <div class="claudeai-kpi-label"><?= $escaper->escapeHtml(__('SUCCESS RATE')) ?></div>
+                <div class="claudeai-kpi-value"><?= $escaper->escapeHtml((string) $stats['success_rate']) ?>%</div>
+                <div class="claudeai-kpi-sub"><?= $escaper->escapeHtml(__($successLabel)) ?></div>
+            </div>
+            <div class="claudeai-kpi">
+                <div class="claudeai-kpi-label"><?= $escaper->escapeHtml(__('SPEND THIS MONTH')) ?></div>
+                <div class="claudeai-kpi-value"><?= $escaper->escapeHtml($block->formatCost((float) $stats['month_cost_usd'])) ?></div>
+                <div class="claudeai-kpi-sub">
+                    <?= $escaper->escapeHtml($block->formatCost((float) $stats['today_cost_usd'])) ?> <?= $escaper->escapeHtml(__('today')) ?>
+                    · <?= $escaper->escapeHtml((string) $stats['cost_model']) ?>
+                </div>
+            </div>
+        </div>
+        <div class="claudeai-usage-strip">
+            <span><strong><?= number_format($stats['total_input_tokens']) ?></strong> <?= $escaper->escapeHtml(__('input tokens')) ?></span>
+            <span><strong><?= number_format($stats['total_output_tokens']) ?></strong> <?= $escaper->escapeHtml(__('output tokens')) ?></span>
+            <span><strong><?= number_format($stats['total_cache_tokens']) ?></strong> <?= $escaper->escapeHtml(__('cache hits')) ?></span>
+            <span><?= $escaper->escapeHtml(__('Lifetime cost:')) ?> <strong><?= $escaper->escapeHtml($block->formatCost((float) $stats['total_cost_usd'])) ?></strong></span>
+        </div>
+    </div>
+
+    <!-- Two-column row -->
+    <div class="claudeai-two-col">
+        <!-- Quick actions -->
+        <div class="admin__page-section">
+            <div class="admin__page-section-title">
+                <span class="title"><?= $escaper->escapeHtml(__('Quick actions')) ?></span>
+            </div>
+            <div class="admin__page-section-content">
+                <p class="claudeai-help"><?= $escaper->escapeHtml(__('Click any of these to jump straight into the chat with the prompt pre-filled.')) ?></p>
+                <ul class="claudeai-quick-list">
+                    <li><a href="<?= $escaper->escapeUrl($block->getChatUrl()) ?>?prompt=<?= rawurlencode('How many products do I have?') ?>">
+                        <strong><?= $escaper->escapeHtml(__('Count my products')) ?></strong>
+                        <span><?= $escaper->escapeHtml(__('"How many products do I have?"')) ?></span>
+                    </a></li>
+                    <li><a href="<?= $escaper->escapeUrl($block->getChatUrl()) ?>?prompt=<?= rawurlencode('Show me the 10 most recent orders') ?>">
+                        <strong><?= $escaper->escapeHtml(__('See recent orders')) ?></strong>
+                        <span><?= $escaper->escapeHtml(__('"Show me the 10 most recent orders"')) ?></span>
+                    </a></li>
+                    <li><a href="<?= $escaper->escapeUrl($block->getChatUrl()) ?>?prompt=<?= rawurlencode('Which products have less than 3 in stock?') ?>">
+                        <strong><?= $escaper->escapeHtml(__('Find low-stock products')) ?></strong>
+                        <span><?= $escaper->escapeHtml(__('"Which products have less than 3 in stock?"')) ?></span>
+                    </a></li>
+                    <li><a href="<?= $escaper->escapeUrl($block->getChatUrl()) ?>?prompt=<?= rawurlencode('Find all products with the word "hoodie" in the name') ?>">
+                        <strong><?= $escaper->escapeHtml(__('Search products')) ?></strong>
+                        <span><?= $escaper->escapeHtml(__('"Find all products with the word ‘hoodie’ in the name"')) ?></span>
+                    </a></li>
+                    <li><a href="<?= $escaper->escapeUrl($block->getChatUrl()) ?>?prompt=<?= rawurlencode('Make every t-shirt cost $24.99') ?>">
+                        <strong><?= $escaper->escapeHtml(__('Update prices in bulk')) ?></strong>
+                        <span><?= $escaper->escapeHtml(__('"Make every t-shirt cost $24.99"')) ?></span>
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Activity feed -->
+        <div class="admin__page-section">
+            <div class="admin__page-section-title">
+                <span class="title"><?= $escaper->escapeHtml(__('Recent activity')) ?></span>
+                <a href="<?= $escaper->escapeUrl($block->getActivityUrl()) ?>" class="claudeai-link-right"><?= $escaper->escapeHtml(__('View all')) ?> →</a>
+            </div>
+            <?php if (empty($stats['recent'])): ?>
+                <div class="admin__page-section-content claudeai-empty">
+                    <p><?= $escaper->escapeHtml(__('No activity yet.')) ?></p>
+                    <p class="claudeai-help"><?= $escaper->escapeHtml(__('Head to Ask Claude and try a prompt — your activity will appear here.')) ?></p>
+                </div>
+            <?php else: ?>
+                <table class="data-grid">
+                    <thead>
+                        <tr><th><?= $escaper->escapeHtml(__('When')) ?></th><th><?= $escaper->escapeHtml(__('What')) ?></th><th><?= $escaper->escapeHtml(__('Status')) ?></th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($stats['recent'] as $row): ?>
+                            <?php
+                            $title = $row['actor_type'] === 'tool'
+                                ? ucfirst(str_replace('_', ' ', (string) $row['action']))
+                                : ($row['actor_type'] === 'user' ? 'Asked: ' . mb_strimwidth((string) ($row['prompt'] ?? ''), 0, 40, '…') : 'AI replied');
+                            $when = (string) ($row['created_at'] ?? '');
+                            $isErr = (string) ($row['status'] ?? 'success') === 'error';
+                            ?>
+                            <tr>
+                                <td><?= $escaper->escapeHtml($when ? date('M j, H:i', strtotime($when)) : '') ?></td>
+                                <td><?= $escaper->escapeHtml($title) ?></td>
+                                <td><span class="claudeai-status-pill claudeai-status-<?= $isErr ? 'err' : 'ok' ?>"><?= $isErr ? 'error' : 'success' ?></span></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('How it works')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <ol class="claudeai-steps">
+                <li><strong><?= $escaper->escapeHtml(__('Ask in plain English.')) ?></strong> <?= $escaper->escapeHtml(__('No syntax to learn. "Update the price of all t-shirts to $24.99" works.')) ?></li>
+                <li><strong><?= $escaper->escapeHtml(__('Claude understands the context.')) ?></strong> <?= $escaper->escapeHtml(__('It searches your catalog, customers, and orders to find what you mean.')) ?></li>
+                <li><strong><?= $escaper->escapeHtml(__('Action runs automatically.')) ?></strong> <?= $escaper->escapeHtml(__('Every write creates a checkpoint — safe to undo.')) ?></li>
+                <li><strong><?= $escaper->escapeHtml(__('You\'re notified.')) ?></strong> <?= $escaper->escapeHtml(__('Plain-English summary, with usage stats and an undo link.')) ?></li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="claudeai-credit">
+        <?= $escaper->escapeHtml(__('Designed & developed with')) ?> <span class="heart">♥</span>
+        <?= $escaper->escapeHtml(__('by')) ?> <a href="https://kishansavaliya.com" target="_blank" rel="noopener">Kishan Savaliya</a> · Panth Infotech
+    </div>
+</div>
