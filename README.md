@@ -23,6 +23,8 @@
 [![Get a Quote](https://img.shields.io/badge/Get%20a%20Quote-Free%20Estimate-DC2626)](https://kishansavaliya.com/get-quote)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
+![Magento 2 Claude AI integration for automation — natural-language admin assistant that manages products, orders, customers, CMS, configuration and inventory with one-click undo](docs/images/magento2-claude-ai-integration-for-automation.png)
+
 > **Stop clicking through 12 admin screens. Just *ask*.**
 > *"Make every t-shirt $24.99"* · *"Disable products with no stock"* · *"Show me the 10 most recent orders"* · *"Create a Summer Sale CMS block"* · *"Reindex the catalog price index and flush the FPC"* · *"undo"*.
 > Your **AI store manager**, sitting inside the Magento admin — built on Anthropic's [Claude Opus 4.7](https://platform.claude.com/) with **prompt caching, adaptive thinking, manual tool-use loop, dry-run safety, and one-click undo** on every bulk write.
