@@ -9,7 +9,7 @@ $successLabel = $stats['success_rate'] >= 95 ? 'Excellent' : ($stats['success_ra
 <div class="claudeai-dashboard">
     <?php if (!$block->isConfigured()): ?>
         <div class="message message-warning">
-            <span><strong><?= $escaper->escapeHtml(__('Heads up')) ?></strong> —
+            <span><strong><?= $escaper->escapeHtml(__('Heads up')) ?></strong> -
                 Claude AI is not configured yet. Add your Anthropic API key in
                 <a href="<?= $escaper->escapeUrl($block->getConfigUrl()) ?>">Configuration</a>
                 to start using the assistant.
@@ -117,7 +117,7 @@ $successLabel = $stats['success_rate'] >= 95 ? 'Excellent' : ($stats['success_ra
             <?php if (empty($stats['recent'])): ?>
                 <div class="admin__page-section-content claudeai-empty">
                     <p><?= $escaper->escapeHtml(__('No activity yet.')) ?></p>
-                    <p class="claudeai-help"><?= $escaper->escapeHtml(__('Head to Ask Claude and try a prompt — your activity will appear here.')) ?></p>
+                    <p class="claudeai-help"><?= $escaper->escapeHtml(__('Head to Ask Claude and try a prompt - your activity will appear here.')) ?></p>
                 </div>
             <?php else: ?>
                 <table class="data-grid">
@@ -154,7 +154,7 @@ $successLabel = $stats['success_rate'] >= 95 ? 'Excellent' : ($stats['success_ra
             <ol class="claudeai-steps">
                 <li><strong><?= $escaper->escapeHtml(__('Ask in plain English.')) ?></strong> <?= $escaper->escapeHtml(__('No syntax to learn. "Update the price of all t-shirts to $24.99" works.')) ?></li>
                 <li><strong><?= $escaper->escapeHtml(__('Claude understands the context.')) ?></strong> <?= $escaper->escapeHtml(__('It searches your catalog, customers, and orders to find what you mean.')) ?></li>
-                <li><strong><?= $escaper->escapeHtml(__('Action runs automatically.')) ?></strong> <?= $escaper->escapeHtml(__('Every write creates a checkpoint — safe to undo.')) ?></li>
+                <li><strong><?= $escaper->escapeHtml(__('Action runs automatically.')) ?></strong> <?= $escaper->escapeHtml(__('Every write creates a checkpoint - safe to undo.')) ?></li>
                 <li><strong><?= $escaper->escapeHtml(__('You\'re notified.')) ?></strong> <?= $escaper->escapeHtml(__('Plain-English summary, with usage stats and an undo link.')) ?></li>
             </ol>
         </div>

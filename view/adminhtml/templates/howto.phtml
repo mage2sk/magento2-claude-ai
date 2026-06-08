@@ -17,7 +17,7 @@ $dryRun     = $block->isDryRun();
             </span>
         </div>
         <div class="admin__page-section-content">
-            <p><?= $escaper->escapeHtml(__('Claude is the AI engine. Anthropic gives every new account')) ?> <strong>$5 <?= $escaper->escapeHtml(__('of free credit')) ?></strong> — <?= $escaper->escapeHtml(__('enough for thousands of questions.')) ?></p>
+            <p><?= $escaper->escapeHtml(__('Claude is the AI engine. Anthropic gives every new account')) ?> <strong>$5 <?= $escaper->escapeHtml(__('of free credit')) ?></strong> - <?= $escaper->escapeHtml(__('enough for thousands of questions.')) ?></p>
             <ol>
                 <li><?= /* @noEscape */ __('Open <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> in a new tab.') ?></li>
                 <li><?= $escaper->escapeHtml(__('Sign up (free). No credit card needed.')) ?></li>
@@ -67,7 +67,7 @@ $dryRun     = $block->isDryRun();
                 <li><em>"Which products have less than 3 in stock?"</em></li>
                 <li><em>"Make every t-shirt cost $24.99"</em></li>
             </ul>
-            <p class="claudeai-help"><?= /* @noEscape */ __('That last one is a write — the AI will tell you exactly which products it\'ll touch and create an undo point first. If anything looks wrong, just say <strong>"undo"</strong>.') ?></p>
+            <p class="claudeai-help"><?= /* @noEscape */ __('That last one is a write - the AI will tell you exactly which products it\'ll touch and create an undo point first. If anything looks wrong, just say <strong>"undo"</strong>.') ?></p>
         </div>
     </div>
 
@@ -90,7 +90,7 @@ $dryRun     = $block->isDryRun();
             <span class="title">5. <?= $escaper->escapeHtml(__('Undo anything you didn\'t mean')) ?></span>
         </div>
         <div class="admin__page-section-content">
-            <p><?= /* @noEscape */ __('Every write — price, status, stock — creates a <strong>checkpoint</strong> automatically. Just say <strong>"undo"</strong> in chat. Or open the <strong>Checkpoints &amp; Restore</strong> page from the menu and click Restore on any change.') ?></p>
+            <p><?= /* @noEscape */ __('Every write - price, status, stock - creates a <strong>checkpoint</strong> automatically. Just say <strong>"undo"</strong> in chat. Or open the <strong>Checkpoints &amp; Restore</strong> page from the menu and click Restore on any change.') ?></p>
         </div>
     </div>
 
@@ -99,7 +99,7 @@ $dryRun     = $block->isDryRun();
             <span class="title">6. <?= $escaper->escapeHtml(__('Floating launcher on every admin page')) ?></span>
         </div>
         <div class="admin__page-section-content">
-            <p><?= $escaper->escapeHtml(__('A small ✨ button appears in the bottom-right corner of every admin page. Click it to open the chat without leaving whatever screen you\'re on — same UX as Magento\'s global search.')) ?></p>
+            <p><?= $escaper->escapeHtml(__('A small ✨ button appears in the bottom-right corner of every admin page. Click it to open the chat without leaving whatever screen you\'re on - same UX as Magento\'s global search.')) ?></p>
             <p class="claudeai-help"><?= $escaper->escapeHtml(__('Hidden automatically for admin users without the Claude AI ACL resource. To turn it off entirely, visit Configuration and set the master switch to No.')) ?></p>
         </div>
     </div>
@@ -110,7 +110,7 @@ $dryRun     = $block->isDryRun();
         </div>
         <div class="admin__page-section-content">
             <p><strong><?= $escaper->escapeHtml(__('Will this cost me money?')) ?></strong><br>
-                <?= $escaper->escapeHtml(__('Anthropic gives $5 free on signup — roughly 5,000 questions for a typical store. Most stores spend $1-3/month after that.')) ?></p>
+                <?= $escaper->escapeHtml(__('Anthropic gives $5 free on signup - roughly 5,000 questions for a typical store. Most stores spend $1-3/month after that.')) ?></p>
 
             <p><strong><?= $escaper->escapeHtml(__('Can the AI break my store?')) ?></strong><br>
                 <?= $escaper->escapeHtml(__('No. It can only do things your config allows (toggle each capability in Configuration → Tool Capabilities). It can\'t delete data, send emails, refund payments, or change shipping. Every write creates an undo point.')) ?></p>
@@ -119,10 +119,10 @@ $dryRun     = $block->isDryRun();
                 <?= $escaper->escapeHtml(__('Only your prompts and the data the AI explicitly looks up get sent. Anthropic does not train models on this data by default. Your API key is encrypted in the database.')) ?></p>
 
             <p><strong><?= $escaper->escapeHtml(__('What if I get an error?')) ?></strong><br>
-                <?= /* @noEscape */ __('Check the <strong>Activity Log</strong> page — every prompt, tool call, and reply is logged. Power users can also tail <code>var/log/panth_claudeai.log</code>.') ?></p>
+                <?= /* @noEscape */ __('Check the <strong>Activity Log</strong> page - every prompt, tool call, and reply is logged. Power users can also tail <code>var/log/panth_claudeai.log</code>.') ?></p>
 
             <p><strong><?= $escaper->escapeHtml(__('Can shoppers chat with the AI too?')) ?></strong><br>
-                <?= $escaper->escapeHtml(__('Yes — turn on the Storefront Shop Assistant widget in Configuration. It\'s read-only (can search products and answer store questions, but can\'t change anything). Add the widget block in CMS pages or layout XML.')) ?></p>
+                <?= $escaper->escapeHtml(__('Yes - turn on the Storefront Shop Assistant widget in Configuration. It\'s read-only (can search products and answer store questions, but can\'t change anything). Add the widget block in CMS pages or layout XML.')) ?></p>
         </div>
     </div>
 

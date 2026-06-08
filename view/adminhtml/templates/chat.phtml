@@ -8,7 +8,7 @@ $recent = $block->getRecentConversations(40);
 <div class="claudeai-page claudeai-shell">
     <?php if (!$block->isConfigured()): ?>
         <div class="message message-warning">
-            <span><strong><?= $escaper->escapeHtml(__('Heads up')) ?></strong> —
+            <span><strong><?= $escaper->escapeHtml(__('Heads up')) ?></strong> -
                 <?= $escaper->escapeHtml(__('Claude AI is not set up yet.')) ?>
                 <a href="<?= $escaper->escapeUrl($block->getConfigUrl()) ?>"><?= $escaper->escapeHtml(__('Add your API key')) ?></a>
                 <?= $escaper->escapeHtml(__('to start.')) ?>
@@ -25,7 +25,7 @@ $recent = $block->getRecentConversations(40);
     <?php endif; ?>
 
     <div class="claudeai-chat" id="claudeai-chat">
-        <!-- Slim sidebar — only the chat list. Capabilities & suggestions
+        <!-- Slim sidebar - only the chat list. Capabilities & suggestions
              live in the empty state where they belong. -->
         <aside class="claudeai-chat-side" id="claudeai-side">
             <div class="claudeai-side-head">
@@ -40,7 +40,7 @@ $recent = $block->getRecentConversations(40);
             </div>
             <ul class="claudeai-chat-history" id="claudeai-history">
                 <?php if (empty($recent)): ?>
-                    <li class="claudeai-history-empty"><?= $escaper->escapeHtml(__('No chats yet — your first one will show up here.')) ?></li>
+                    <li class="claudeai-history-empty"><?= $escaper->escapeHtml(__('No chats yet - your first one will show up here.')) ?></li>
                 <?php else: ?>
                     <?php foreach ($recent as $c): ?>
                         <li class="claudeai-history-item"
@@ -67,7 +67,7 @@ $recent = $block->getRecentConversations(40);
         </button>
 
         <main class="claudeai-chat-main">
-            <!-- Slim integrated header — model badge + status, no big banner -->
+            <!-- Slim integrated header - model badge + status, no big banner -->
             <div class="claudeai-main-head">
                 <div class="claudeai-main-mark">
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -169,7 +169,7 @@ $recent = $block->getRecentConversations(40);
                         </div>
                     </div>
 
-                    <!-- Suggestion pills — try one of these -->
+                    <!-- Suggestion pills - try one of these -->
                     <div class="claudeai-empty-suggest">
                         <button type="button" class="claudeai-chat-chip" data-suggestion="<?= $escaper->escapeHtmlAttr(__('Show me the 10 most recent orders')) ?>">
                             <?= $escaper->escapeHtml(__('Show my 10 newest orders')) ?>
@@ -231,7 +231,7 @@ $recent = $block->getRecentConversations(40);
     const LOAD_URL   = <?= json_encode($block->getLoadUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
     const FORM_KEY   = <?= json_encode($block->getFormKey(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
 
-    // Sparkle glyph used for the AI avatar — same mark as the launcher widget
+    // Sparkle glyph used for the AI avatar - same mark as the launcher widget
     // and the empty-state icon, so the brand stays consistent everywhere.
     const AI_GLYPH =
         '<svg viewBox="0 0 24 24" aria-hidden="true">' +
@@ -239,7 +239,7 @@ $recent = $block->getRecentConversations(40);
         '<path d="M18.5 14.5l.85 2.4 2.4.85-2.4.85-.85 2.4-.85-2.4-2.4-.85 2.4-.85.85-2.4z" opacity=".75"/>' +
         '</svg>';
 
-    // Plain-English labels for tool names — shown in the "thinking" status
+    // Plain-English labels for tool names - shown in the "thinking" status
     // line so the user sees "Looking up products" instead of "get_products".
     const FRIENDLY_TOOL = {
         get_products:           'Looking up products',
@@ -275,7 +275,7 @@ $recent = $block->getRecentConversations(40);
     const fileIn   = document.getElementById('claudeai-file');
     const attBox   = document.getElementById('claudeai-attachments');
 
-    // Sidebar collapse — persisted across reloads.
+    // Sidebar collapse - persisted across reloads.
     const SIDE_KEY = 'panth_claudeai_side_collapsed';
     if (localStorage.getItem(SIDE_KEY) === '1') chat.classList.add('is-collapsed');
     sideTog?.addEventListener('click', () => {
@@ -439,7 +439,7 @@ $recent = $block->getRecentConversations(40);
 
         const resp = await fetch(STREAM_URL, {
             method: 'POST', credentials: 'include', signal: ctrl.signal,
-            // Don't send Accept: text/event-stream — Magento's webapi
+            // Don't send Accept: text/event-stream - Magento's webapi
             // RendererFactory rejects it when tools save through productRepository.
             headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
             body: JSON.stringify({
@@ -472,10 +472,10 @@ $recent = $block->getRecentConversations(40);
                     '<summary><span class="claudeai-tool-result-icon">' +
                     (data.status === 'error' ? '⚠️' : '✓') + '</span> ' +
                     '<span class="claudeai-tool-result-summary">' +
-                    esc(friendlyTool(data.name || '')) + ' — ' + esc(summary) +
+                    esc(friendlyTool(data.name || '')) + ' - ' + esc(summary) +
                     '</span></summary>' +
                     '</details></div>');
-                setStatus(t, '<?= $escaper->escapeJs(__('Got it — figuring out what to do next…')) ?>');
+                setStatus(t, '<?= $escaper->escapeJs(__('Got it - figuring out what to do next…')) ?>');
                 autoScroll();
             } else if (event === 'writing_reply') {
                 setStatus(t, '<?= $escaper->escapeJs(__('Writing the reply…')) ?>');
@@ -543,7 +543,7 @@ $recent = $block->getRecentConversations(40);
             await streamSend(message, sentAttachments);
         } catch (e) {
             if (e.name === 'AbortError') {
-                bubble('ai', '<em style="color:#b30000"><?= $escaper->escapeJs(__('Stopped — no more tokens spent.')) ?></em>');
+                bubble('ai', '<em style="color:#b30000"><?= $escaper->escapeJs(__('Stopped - no more tokens spent.')) ?></em>');
             } else {
                 bubble('err', '<strong><?= $escaper->escapeJs(__('Network problem:')) ?></strong> ' + esc(e.message));
             }

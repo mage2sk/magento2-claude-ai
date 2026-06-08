@@ -166,14 +166,14 @@ $avatarFor = static function (string $role): string {
                                      src="<?= $escaper->escapeHtmlAttr($uri) ?>"
                                      alt="<?= $escaper->escapeHtmlAttr(__('Uploaded image')) ?>"/>
                             <?php else: ?>
-                                <div class="other-block"><?= $escaper->escapeHtml(__('[image — source missing]')) ?></div>
+                                <div class="other-block"><?= $escaper->escapeHtml(__('[image - source missing]')) ?></div>
                             <?php endif; ?>
 
                         <?php elseif ($type === 'document'): ?>
                             <?php $src = $b['source'] ?? []; $mt = (string) ($src['media_type'] ?? 'application/pdf'); ?>
                             <div class="doc-block">
                                 📄 <?= $escaper->escapeHtml(__('Document attached')) ?>
-                                — <?= $escaper->escapeHtml($mt) ?>
+                                - <?= $escaper->escapeHtml($mt) ?>
                                 <?php if (!empty($src['data'])): ?>
                                     (<?= (int) round(strlen((string) $src['data']) * 0.75 / 1024) ?> KB)
                                 <?php endif; ?>

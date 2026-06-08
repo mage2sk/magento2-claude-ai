@@ -71,7 +71,7 @@
 }
 .pclaude-widget.is-open { display: flex; transform: translateY(0) scale(1); opacity: 1; }
 
-/* Resize grip — top-left corner. Three diagonal dots so it's clearly
+/* Resize grip - top-left corner. Three diagonal dots so it's clearly
    a handle, not a stray pixel. Bright on the dark header, fades on hover. */
 .pclaude-resize {
     position: absolute; top: 0; left: 0; width: 24px; height: 24px;
@@ -131,7 +131,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
     transition: background .15s, transform .15s;
     text-decoration: none;
     /* Magento admin's global button rules add padding that squishes the
-       SVG to 0×0 — force padding 0 + box-sizing so the 15×15 icon shows. */
+       SVG to 0×0 - force padding 0 + box-sizing so the 15×15 icon shows. */
     padding: 0; box-sizing: border-box; line-height: 1;
     flex-shrink: 0;
 }
@@ -145,7 +145,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
 .pclaude-icon-btn svg circle,
 .pclaude-icon-btn svg rect { fill: none !important; stroke: currentColor !important; }
 .pclaude-icon-btn svg { width: 15px; height: 15px; display: block; }
-/* Brand mark + empty-state mark — these need fill:none on paths too so
+/* Brand mark + empty-state mark - these need fill:none on paths too so
    the stroke renders cleanly against the gradient. */
 .pclaude-mark svg, .pclaude-mark svg path,
 .pclaude-empty-mark svg, .pclaude-empty-mark svg path {
@@ -384,7 +384,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
         aria-label="<?= $escaper->escapeHtmlAttr(__('Open Ask Claude chat')) ?>"
         aria-expanded="false">
     <span class="pulse"></span>
-    <span class="pclaude-launcher-tip"><?= $escaper->escapeHtml(__('Ask Claude — your store assistant')) ?></span>
+    <span class="pclaude-launcher-tip"><?= $escaper->escapeHtml(__('Ask Claude - your store assistant')) ?></span>
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
@@ -452,7 +452,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
                 </svg>
             </div>
             <h3><?= $escaper->escapeHtml(__('How can I help today?')) ?></h3>
-            <p><?= $escaper->escapeHtml(__('I can search products, manage orders, update prices, edit CMS pages — anything in your store.')) ?></p>
+            <p><?= $escaper->escapeHtml(__('I can search products, manage orders, update prices, edit CMS pages - anything in your store.')) ?></p>
             <div class="pclaude-suggest">
                 <button type="button" class="pclaude-chip" data-prompt="<?= $escaper->escapeHtmlAttr(__('Show me the 10 most recent orders')) ?>">
                     <?= $escaper->escapeHtml(__('Show me the 10 most recent orders')) ?>
@@ -549,14 +549,14 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
     }
     function clearEmpty() { const e = feed.querySelector('.pclaude-empty'); if (e) e.remove(); }
 
-    // Stylized sparkle glyph — Claude/AI mark, not a generic "C".
+    // Stylized sparkle glyph - Claude/AI mark, not a generic "C".
     const AI_GLYPH =
         '<svg viewBox="0 0 24 24" aria-hidden="true">' +
         '<path d="M12 2.5l1.95 5.55L19.5 10l-5.55 1.95L12 17.5l-1.95-5.55L4.5 10l5.55-1.95L12 2.5z"/>' +
         '<path d="M18.5 14.5l.85 2.4 2.4.85-2.4.85-.85 2.4-.85-2.4-2.4-.85 2.4-.85.85-2.4z" opacity=".75"/>' +
         '</svg>';
 
-    // Walk back through preceding siblings — if the first non-tool row we
+    // Walk back through preceding siblings - if the first non-tool row we
     // hit is another AI row, this new bubble is a continuation of the same
     // assistant turn and should hide its avatar.
     function isContinuation() {
@@ -685,7 +685,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
         try {
             const resp = await fetch(STREAM_URL, {
                 method: 'POST', credentials: 'include', signal: ctrl.signal,
-                // Don't send Accept: text/event-stream — Magento's webapi
+                // Don't send Accept: text/event-stream - Magento's webapi
                 // RendererFactory rejects it when the orchestrator's tools
                 // (e.g. manage_products) save through productRepository,
                 // because some Magento plugins read the live request's Accept
@@ -712,7 +712,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
                         d.innerHTML = '<code>' + esc(data.name) + '</code><span>' + esc(summary) + '</span>';
                         return d;
                     })());
-                    setStatus(t, 'Got results — figuring out next step…');
+                    setStatus(t, 'Got results - figuring out next step…');
                 }
                 else if (event === 'writing_reply') setStatus(t, 'Writing the reply…');
                 else if (event === 'done')          done = data;
@@ -774,7 +774,7 @@ body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
         feed.innerHTML = '<div class="pclaude-empty">' +
             '<div class="pclaude-empty-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>' +
             '<h3>How can I help today?</h3>' +
-            '<p>Fresh chat — your previous one is saved under Conversations.</p></div>';
+            '<p>Fresh chat - your previous one is saved under Conversations.</p></div>';
         input.focus();
     });
 
