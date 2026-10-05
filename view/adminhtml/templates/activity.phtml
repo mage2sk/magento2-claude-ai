@@ -1,0 +1,72 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Activity $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$rows = $block->getRecentActivity(200);
+?>
+<div class="claudeai-page">
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Activity log')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p class="claudeai-help">
+                <?= $escaper->escapeHtml(__('Every prompt, tool call, and reply - with timing and token usage. Older entries are auto-pruned by the daily cron based on retention config.')) ?>
+            </p>
+            <?php if (empty($rows)): ?>
+                <div class="claudeai-empty">
+                    <p><?= $escaper->escapeHtml(__('No activity recorded yet.')) ?></p>
+                </div>
+            <?php else: ?>
+                <table class="data-grid">
+                    <thead>
+                        <tr>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('When')) ?></th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Actor')) ?></th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Action')) ?></th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Detail')) ?></th>
+                            <th class="data-grid-th" style="text-align:right"><?= $escaper->escapeHtml(__('Affected')) ?></th>
+                            <th class="data-grid-th" style="text-align:right"><?= $escaper->escapeHtml(__('Tokens (in/out)')) ?></th>
+                            <th class="data-grid-th" style="text-align:right"><?= $escaper->escapeHtml(__('Cost')) ?></th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Status')) ?></th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Conversation')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rows as $r): ?>
+                            <tr>
+                                <td style="white-space:nowrap"><?= $escaper->escapeHtml(date('M j H:i:s', strtotime((string) $r['created_at']))) ?></td>
+                                <td><span class="claudeai-status-pill claudeai-status-tool"><?= $escaper->escapeHtml((string) $r['actor_type']) ?></span></td>
+                                <td><code style="font-size:12px"><?= $escaper->escapeHtml((string) $r['action']) ?></code></td>
+                                <td style="max-width:480px"><?= $escaper->escapeHtml(mb_strimwidth((string) ($r['prompt'] ?? $r['result'] ?? ''), 0, 180, '...')) ?></td>
+                                <td style="text-align:right"><?= (int) $r['affected_count'] > 0 ? (int) $r['affected_count'] : '-' ?></td>
+                                <td style="text-align:right;font-family:Menlo,monospace;font-size:12px;color:#666">
+                                    <?php if ($r['input_tokens'] || $r['output_tokens']): ?>
+                                        <?= (int) $r['input_tokens'] ?> / <?= (int) $r['output_tokens'] ?>
+                                    <?php else: ?>-<?php endif; ?>
+                                </td>
+                                <td style="text-align:right;font-family:Menlo,monospace;font-size:12px;color:#555">
+                                    <?php $cost = $block->rowCost($r); ?>
+                                    <?= $cost !== '' ? $escaper->escapeHtml($cost) : '-' ?>
+                                </td>
+                                <td>
+                                    <?php $st = (string) $r['status']; ?>
+                                    <span class="claudeai-status-pill claudeai-status-<?= $st === 'success' ? 'ok' : 'err' ?>"><?= $escaper->escapeHtml($st) ?></span>
+                                </td>
+                                <td>
+                                    <?php $cid = (string) ($r['conversation_id'] ?? ''); ?>
+                                    <?php if ($cid !== ''): ?>
+                                        <a href="<?= $escaper->escapeUrl($block->getConversationViewUrl($cid)) ?>"
+                                           style="font-size:12px"><?= $escaper->escapeHtml(__('View')) ?></a>
+                                    <?php else: ?>-<?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
+</div>

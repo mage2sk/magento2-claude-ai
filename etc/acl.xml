@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Panth_ClaudeAi::ai_root" title="Claude AI Automation" sortOrder="100">
+                    <resource id="Panth_ClaudeAi::ai_dashboard"  title="AI Dashboard"/>
+                    <resource id="Panth_ClaudeAi::ai_chat"       title="Ask Claude"/>
+                    <resource id="Panth_ClaudeAi::ai_training"   title="Training Examples"/>
+                    <resource id="Panth_ClaudeAi::ai_activity"   title="Activity Log"/>
+                    <resource id="Panth_ClaudeAi::ai_conversations" title="Conversations"/>
+                    <resource id="Panth_ClaudeAi::ai_checkpoint" title="Checkpoints"/>
+                    <resource id="Panth_ClaudeAi::ai_config"     title="Configuration"/>
+                    <resource id="Panth_ClaudeAi::config_section" title="Claude AI Configuration"/>
+                    <resource id="Panth_ClaudeAi::ai_upload"     title="File Upload"/>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

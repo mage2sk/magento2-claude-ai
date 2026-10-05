@@ -1,0 +1,76 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\Training\Listing $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+$items = $block->getTrainingItems();
+?>
+<div class="claudeai-page">
+    <div class="page-actions">
+        <div class="page-actions-inner">
+            <div class="page-actions-buttons">
+                <a href="<?= $escaper->escapeUrl($block->getNewUrl()) ?>" class="action-primary">
+                    <span><?= $escaper->escapeHtml(__('Add training example')) ?></span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Training examples')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <p class="claudeai-help">
+                <?= $escaper->escapeHtml(__('Examples teach Claude store-specific terminology, workflows, and merchant preferences. Each active row gets injected into the AI\'s system prompt.')) ?>
+            </p>
+
+            <?php if (empty($items)): ?>
+                <div class="claudeai-empty">
+                    <p><strong><?= $escaper->escapeHtml(__('No training examples yet.')) ?></strong></p>
+                    <p class="claudeai-help"><?= $escaper->escapeHtml(__('Add your first one to teach Claude how YOUR store works.')) ?></p>
+                </div>
+            <?php else: ?>
+                <table class="data-grid">
+                    <thead>
+                        <tr>
+                            <th class="data-grid-th" style="width:60px">ID</th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Title')) ?></th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Category')) ?></th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Merchant says')) ?></th>
+                            <th class="data-grid-th" style="width:80px;text-align:right"><?= $escaper->escapeHtml(__('Used')) ?></th>
+                            <th class="data-grid-th" style="width:90px"><?= $escaper->escapeHtml(__('Status')) ?></th>
+                            <th class="data-grid-th" style="width:140px;text-align:right"><?= $escaper->escapeHtml(__('Actions')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($items as $t): ?>
+                            <tr>
+                                <td>#<?= (int) $t->getId() ?></td>
+                                <td><strong><?= $escaper->escapeHtml((string) $t->getData('title')) ?></strong></td>
+                                <td><?= $escaper->escapeHtml((string) $t->getData('category')) ?></td>
+                                <td><?= $escaper->escapeHtml(mb_strimwidth((string) $t->getData('user_message'), 0, 100, '...')) ?></td>
+                                <td style="text-align:right"><?= (int) $t->getData('usage_count') ?></td>
+                                <td>
+                                    <?php if ((int) $t->getData('status') === 1): ?>
+                                        <span class="claudeai-status-pill claudeai-status-ok"><?= $escaper->escapeHtml(__('Active')) ?></span>
+                                    <?php else: ?>
+                                        <span class="claudeai-status-pill" style="background:#e8e8e8;color:#555"><?= $escaper->escapeHtml(__('Disabled')) ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td style="text-align:right">
+                                    <a href="<?= $escaper->escapeUrl($block->getEditUrl((int) $t->getId())) ?>"><?= $escaper->escapeHtml(__('Edit')) ?></a>
+                                    <span style="color:#ccc"> · </span>
+                                    <button type="button" class="action-link claudeai-post-action"
+                                            style="color:#b30000;background:none;border:0;padding:0;cursor:pointer"
+                                            data-mage-init='<?= $escaper->escapeHtmlAttr(json_encode(['Panth_ClaudeAi/js/post-action' => ['url' => $block->getDeleteUrl((int) $t->getId()), 'title' => (string) __('Delete training example'), 'message' => (string) __('Delete this training example?')]])) ?>'><?= $escaper->escapeHtml(__('Delete')) ?></button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+    </div>
+
+</div>

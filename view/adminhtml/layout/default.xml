@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+  Inject the Ask-Claude floating launcher into every admin page. The
+  block hides itself for admins without ACL access, so this is safe to
+  render globally.
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="before.body.end">
+            <block class="Panth\ClaudeAi\Block\Adminhtml\AiLauncher"
+                   name="claudeai.launcher"
+                   template="Panth_ClaudeAi::launcher.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

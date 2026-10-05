@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Admin tool catalog: full Magento depth.
+         Adding a new tool = implement ToolInterface, register here. -->
+    <virtualType name="Panth\ClaudeAi\Model\ToolRegistry\Admin"
+                 type="Panth\ClaudeAi\Model\ToolRegistry">
+        <arguments>
+            <argument name="tools" xsi:type="array">
+                <item name="get_products"            xsi:type="object">Panth\ClaudeAi\Model\Tool\GetProducts</item>
+                <item name="manage_products"         xsi:type="object">Panth\ClaudeAi\Model\Tool\ManageProducts</item>
+                <item name="update_product_price"    xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateProductPrice</item>
+                <item name="update_product_status"   xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateProductStatus</item>
+                <item name="update_inventory"        xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateInventory</item>
+                <item name="manage_categories"       xsi:type="object">Panth\ClaudeAi\Model\Tool\ManageCategories</item>
+                <item name="customers"               xsi:type="object">Panth\ClaudeAi\Model\Tool\Customers</item>
+                <item name="orders"                  xsi:type="object">Panth\ClaudeAi\Model\Tool\Orders</item>
+                <item name="manage_cms_pages"        xsi:type="object">Panth\ClaudeAi\Model\Tool\ManageCmsPages</item>
+                <item name="manage_cms_blocks"       xsi:type="object">Panth\ClaudeAi\Model\Tool\ManageCmsBlocks</item>
+                <item name="store_insights"          xsi:type="object">Panth\ClaudeAi\Model\Tool\StoreInsights</item>
+                <item name="get_low_stock_products"  xsi:type="object">Panth\ClaudeAi\Model\Tool\LowStock</item>
+                <item name="store_info"              xsi:type="object">Panth\ClaudeAi\Model\Tool\StoreInfo</item>
+                <item name="update_config"           xsi:type="object">Panth\ClaudeAi\Model\Tool\UpdateConfig</item>
+                <item name="set_store_logo"          xsi:type="object">Panth\ClaudeAi\Model\Tool\SetStoreLogo</item>
+                <item name="get_modules"             xsi:type="object">Panth\ClaudeAi\Model\Tool\GetModules</item>
+                <item name="database_query"          xsi:type="object">Panth\ClaudeAi\Model\Tool\DatabaseQuery</item>
+                <item name="cache_reindex"           xsi:type="object">Panth\ClaudeAi\Model\Tool\CacheReindex</item>
+                <item name="restore_checkpoint"      xsi:type="object">Panth\ClaudeAi\Model\Tool\RestoreCheckpoint</item>
+            </argument>
+            <argument name="config" xsi:type="object">Panth\ClaudeAi\Model\Config</argument>
+            <argument name="authorization" xsi:type="object">Magento\Framework\AuthorizationInterface</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Default registry (admin) - the only catalog this module exposes.
+         There is no storefront surface; everything is admin-only. -->
+    <preference for="Panth\ClaudeAi\Model\ToolRegistry"
+                type="Panth\ClaudeAi\Model\ToolRegistry\Admin"/>
+
+    <!-- Activity log grid data provider -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="panth_claudeai_activity_listing_data_source" xsi:type="string">
+                    Panth\ClaudeAi\Model\ResourceModel\Activity\Collection
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <type name="Panth\ClaudeAi\Model\ResourceModel\Activity\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">panth_claudeai_activity</argument>
+            <argument name="resourceModel" xsi:type="string">Panth\ClaudeAi\Model\ResourceModel\Activity</argument>
+        </arguments>
+    </type>
+
+    <!-- Custom logger writing to var/log/panth_claudeai.log so chat events
+         and tool errors are easy to grep without scanning system.log. -->
+    <type name="Panth\ClaudeAi\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">panth_claudeai</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Panth\ClaudeAi\Logger\Handler</item>
+                <item name="fallback" xsi:type="object">Panth\ClaudeAi\Logger\SystemFallbackHandler</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <virtualType name="Panth\ClaudeAi\Logger\SystemFallbackHandler" type="Panth\ClaudeAi\Logger\Handler">
+        <arguments>
+            <argument name="fileName" xsi:type="string">/var/log/system.log</argument>
+            <argument name="fallback" xsi:type="boolean">true</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Panth\ClaudeAi\Controller\Adminhtml\Chat\Load">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Controller\Adminhtml\Chat\Send">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Controller\Adminhtml\Chat\Stream">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Controller\Adminhtml\Chat\Upload">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Cron\Cleanup">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Model\Activity\Logger">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Model\CheckpointService">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Model\ClaudeClient">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Model\MessageStore">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Model\Orchestrator">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Panth\ClaudeAi\Model\Tool\SetStoreLogo">
+        <arguments>
+            <argument name="logger" xsi:type="object">Panth\ClaudeAi\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <!-- CLI commands -->
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="panth_claudeai_status"   xsi:type="object">Panth\ClaudeAi\Console\Command\StatusCommand</item>
+                <item name="panth_claudeai_test_api" xsi:type="object">Panth\ClaudeAi\Console\Command\TestApiCommand</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

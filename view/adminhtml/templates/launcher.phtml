@@ -1,0 +1,945 @@
+<?php
+/**
+ * @var \Panth\ClaudeAi\Block\Adminhtml\AiLauncher $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<style>
+:root {
+    --pclaude-orange: #eb5202;
+    --pclaude-orange-dark: #c4410f;
+    --pclaude-ink: #1f1f1f;
+    --pclaude-text: #2a2a2a;
+    --pclaude-muted: #707070;
+    --pclaude-border: #e3e3e3;
+    --pclaude-bg: #ffffff;
+    --pclaude-feed: #f7f6f3;
+    --pclaude-shadow: 0 24px 48px rgba(20,20,20,.18), 0 6px 16px rgba(20,20,20,.08);
+}
+.pclaude-launcher {
+    position: fixed; bottom: 22px; right: 22px; z-index: 900;
+    width: 56px; height: 56px; border-radius: 16px;
+    background: linear-gradient(135deg, #ff6b1a 0%, #eb5202 60%, #c4410f 100%);
+    color: #fff; cursor: pointer; border: none;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 10px 24px rgba(235,82,2,.32), 0 2px 6px rgba(20,20,20,.16);
+    transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, border-radius .2s;
+    padding: 0; box-sizing: border-box; line-height: 1;
+}
+.pclaude-launcher:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 14px 28px rgba(235,82,2,.42), 0 3px 8px rgba(20,20,20,.18);
+}
+.pclaude-launcher:focus-visible {
+    outline: 3px solid #fff3e6; outline-offset: 2px;
+}
+.pclaude-launcher.is-open {
+    border-radius: 50%; transform: scale(.92);
+}
+.pclaude-launcher .pulse {
+    position: absolute; inset: 0; border-radius: inherit;
+    background: rgba(235,82,2,.55); animation: pclaudePulse 2.4s ease-out infinite;
+    z-index: -1; pointer-events: none;
+}
+@keyframes pclaudePulse {
+    0%   { transform: scale(1);   opacity: .55; }
+    80%  { transform: scale(1.6); opacity: 0;   }
+    100% { transform: scale(1.6); opacity: 0;   }
+}
+.pclaude-launcher-tip {
+    position: absolute; right: 70px; top: 50%; transform: translateY(-50%);
+    background: var(--pclaude-ink); color: #fff; font-size: 12px; font-weight: 500;
+    padding: 7px 12px; border-radius: 6px; white-space: nowrap;
+    opacity: 0; pointer-events: none; transition: opacity .15s ease, transform .15s ease;
+}
+.pclaude-launcher:hover .pclaude-launcher-tip { opacity: 1; transform: translateY(-50%) translateX(-4px); }
+.pclaude-launcher.is-open .pclaude-launcher-tip { display: none; }
+
+/* ====================== Widget panel ====================== */
+.pclaude-widget {
+    position: fixed; bottom: 96px; right: 22px; z-index: 899;
+    width: 420px; max-width: calc(100vw - 32px);
+    height: 620px; max-height: calc(100vh - 130px);
+    min-width: 320px; min-height: 380px;
+    background: var(--pclaude-bg);
+    border-radius: 18px;
+    box-shadow: var(--pclaude-shadow);
+    display: none; flex-direction: column; overflow: hidden;
+    font-family: 'Inter', 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    transform: translateY(16px) scale(.96); opacity: 0;
+    transition: transform .22s cubic-bezier(.34,1.56,.64,1), opacity .18s ease;
+}
+.pclaude-widget.is-open { display: flex; transform: translateY(0) scale(1); opacity: 1; }
+
+/* Resize grip - top-left corner. Three diagonal dots so it's clearly
+   a handle, not a stray pixel. Bright on the dark header, fades on hover. */
+.pclaude-resize {
+    position: absolute; top: 0; left: 0; width: 24px; height: 24px;
+    cursor: nwse-resize; z-index: 5;
+    background:
+        radial-gradient(circle at 4px 4px,   rgba(255,255,255,.85) 1.5px, transparent 2px),
+        radial-gradient(circle at 9px 4px,   rgba(255,255,255,.55) 1.5px, transparent 2px),
+        radial-gradient(circle at 4px 9px,   rgba(255,255,255,.55) 1.5px, transparent 2px);
+    transition: opacity .15s ease;
+    opacity: .85;
+}
+.pclaude-resize:hover { opacity: 1; }
+body.pclaude-resizing { user-select: none; cursor: nwse-resize !important; }
+
+/* ====================== Header ====================== */
+.pclaude-header {
+    padding: 16px 18px 14px;
+    background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
+    color: #fff; flex-shrink: 0;
+    position: relative; overflow: hidden;
+}
+.pclaude-header::after {
+    content: ""; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(235,82,2,.45) 0%, transparent 38%),
+      radial-gradient(circle at 88% 84%, rgba(235,82,2,.22) 0%, transparent 42%);
+    pointer-events: none;
+}
+.pclaude-header-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; z-index: 1; }
+.pclaude-brand { display: flex; align-items: center; gap: 11px; }
+.pclaude-mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,.25);
+}
+.pclaude-mark svg { width: 20px; height: 20px; }
+.pclaude-title { font-weight: 700; font-size: 15px; line-height: 1.1; letter-spacing: -.01em; }
+.pclaude-subtitle {
+    font-size: 12px; color: #c8c8c8; margin-top: 3px;
+    display: flex; align-items: center; gap: 6px;
+}
+.pclaude-status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #2ecc71; box-shadow: 0 0 0 0 rgba(46,204,113,.6);
+    animation: pclaudeDot 2s ease-out infinite;
+}
+@keyframes pclaudeDot {
+    0%   { box-shadow: 0 0 0 0 rgba(46,204,113,.6); }
+    100% { box-shadow: 0 0 0 6px rgba(46,204,113,0); }
+}
+.pclaude-actions { display: flex; gap: 4px; align-items: center; position: relative; z-index: 1; }
+.pclaude-icon-btn {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: rgba(255,255,255,.08); border: none; color: #f3f3f3;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background .15s, transform .15s;
+    text-decoration: none;
+    /* Magento admin's global button rules add padding that squishes the
+       SVG to 0×0 - force padding 0 + box-sizing so the 15×15 icon shows. */
+    padding: 0; box-sizing: border-box; line-height: 1;
+    flex-shrink: 0;
+}
+.pclaude-icon-btn:hover { background: rgba(255,255,255,.20); color: #fff; }
+.pclaude-icon-btn:active { transform: scale(.94); }
+/* Magento admin's global stylesheet sets svg { fill: currentColor } which
+   turns our outline icons into solid blocks. Force fill:none on the SVG +
+   every path so the stroke does the drawing. */
+.pclaude-icon-btn svg,
+.pclaude-icon-btn svg path,
+.pclaude-icon-btn svg circle,
+.pclaude-icon-btn svg rect { fill: none !important; stroke: currentColor !important; }
+.pclaude-icon-btn svg { width: 15px; height: 15px; display: block; }
+/* Brand mark + empty-state mark - these need fill:none on paths too so
+   the stroke renders cleanly against the gradient. */
+.pclaude-mark svg, .pclaude-mark svg path,
+.pclaude-empty-mark svg, .pclaude-empty-mark svg path {
+    fill: none !important; stroke: currentColor !important;
+}
+.pclaude-mark svg path        { stroke: #fff !important; }
+.pclaude-empty-mark svg path  { stroke: #fff !important; }
+.pclaude-launcher svg,
+.pclaude-launcher svg path,
+.pclaude-launcher svg circle  { stroke: currentColor !important; }
+.pclaude-launcher svg circle  { fill: currentColor !important; }
+.pclaude-launcher svg path    { fill: none !important; }
+.pclaude-stop svg,
+.pclaude-stop svg rect        { fill: currentColor !important; stroke: none !important; }
+.pclaude-send svg,
+.pclaude-send svg path        { fill: none !important; stroke: currentColor !important; }
+.pclaude-attach svg,
+.pclaude-attach svg path      { fill: none !important; stroke: currentColor !important; }
+
+/* ====================== Feed ====================== */
+.pclaude-feed {
+    flex: 1; overflow-y: auto; padding: 14px 16px;
+    background: var(--pclaude-feed);
+    scroll-behavior: smooth;
+    scrollbar-width: thin; scrollbar-color: #d4d4d4 transparent;
+}
+.pclaude-feed::-webkit-scrollbar { width: 8px; }
+.pclaude-feed::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 4px; }
+.pclaude-feed::-webkit-scrollbar-track { background: transparent; }
+
+.pclaude-empty {
+    text-align: center; padding: 36px 18px; color: var(--pclaude-muted);
+    animation: pclaudeFade .35s ease;
+}
+.pclaude-empty .pclaude-empty-mark {
+    width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 14px;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 20px rgba(235,82,2,.32);
+}
+.pclaude-empty .pclaude-empty-mark svg { width: 28px; height: 28px; color: #fff; }
+.pclaude-empty h3 { font-size: 16px; color: var(--pclaude-ink); margin: 0 0 6px; font-weight: 700; letter-spacing: -.01em; }
+.pclaude-empty p { font-size: 13px; line-height: 1.5; color: var(--pclaude-muted); margin: 0 0 14px; }
+.pclaude-suggest { display: grid; grid-template-columns: 1fr; gap: 6px; max-width: 320px; margin: 0 auto; }
+.pclaude-chip {
+    text-align: left; background: #fff; border: 1px solid var(--pclaude-border);
+    color: var(--pclaude-text); padding: 9px 12px; border-radius: 10px;
+    font-size: 12.5px; cursor: pointer; transition: all .15s ease;
+    display: flex; align-items: center; gap: 8px;
+}
+.pclaude-chip::before {
+    content: ">"; color: var(--pclaude-orange); font-weight: 700;
+    transition: transform .15s ease;
+}
+.pclaude-chip:hover { border-color: var(--pclaude-orange); background: #fff8f3; transform: translateY(-1px); }
+.pclaude-chip:hover::before { transform: translateX(2px); }
+
+@keyframes pclaudeFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pclaudeBubbleIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ====================== Bubbles ====================== */
+.pclaude-row { display: flex; gap: 8px; margin-bottom: 12px; animation: pclaudeBubbleIn .22s ease; }
+.pclaude-row.user { justify-content: flex-end; }
+.pclaude-row.user .pclaude-avatar { display: none; }
+.pclaude-avatar {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f);
+    box-shadow: 0 2px 5px rgba(235,82,2,.28);
+    margin-top: 2px;
+    padding: 0; box-sizing: border-box; line-height: 1;
+}
+.pclaude-avatar svg {
+    width: 14px; height: 14px; display: block;
+    fill: currentColor !important; stroke: none !important;
+}
+.pclaude-avatar svg path { fill: currentColor !important; stroke: none !important; }
+/* JS marks every AI row after the first one in a turn with .is-continuation
+   so multi-block replies (text + tool + text, image + text, etc.) read as
+   one continuous message instead of stacked sparkle avatars. */
+.pclaude-row.ai.is-continuation .pclaude-avatar { visibility: hidden; }
+.pclaude-bubble {
+    max-width: 82%; padding: 10px 13px; border-radius: 14px;
+    font-size: 13.5px; line-height: 1.5;
+    word-wrap: break-word; word-break: break-word;
+}
+.pclaude-row.ai   .pclaude-bubble { background: #fff; border: 1px solid var(--pclaude-border); color: var(--pclaude-text); border-bottom-left-radius: 4px; }
+.pclaude-row.user .pclaude-bubble {
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f); color: #fff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 3px 10px rgba(20,20,20,.16);
+}
+.pclaude-row.err  .pclaude-bubble { background: #fff5f5; border: 1px solid #f5c6c6; color: #b30000; }
+.pclaude-bubble pre {
+    background: #f5f5f5; padding: 8px 10px; border-radius: 6px;
+    font-size: 12px; overflow-x: auto; margin: 6px 0;
+}
+.pclaude-bubble code {
+    background: rgba(0,0,0,.05); padding: 1px 5px; border-radius: 3px;
+    font-size: 12px; font-family: 'JetBrains Mono', Menlo, monospace;
+}
+.pclaude-row.user .pclaude-bubble code { background: rgba(255,255,255,.18); color: #fff; }
+.pclaude-bubble img.attached {
+    max-width: 100%; border-radius: 8px; margin-top: 6px; display: block;
+    border: 1px solid rgba(255,255,255,.2);
+}
+.pclaude-bubble .meta {
+    margin-top: 8px; padding-top: 7px; border-top: 1px dashed #ececec;
+    font-size: 12px; color: var(--pclaude-muted);
+    font-family: 'JetBrains Mono', Menlo, monospace;
+    display: flex; gap: 8px; flex-wrap: wrap;
+}
+.pclaude-row.user .pclaude-bubble .meta { border-top-color: rgba(255,255,255,.15); color: rgba(255,255,255,.7); }
+
+/* Tool chips */
+.pclaude-tool {
+    margin: 4px 0 8px 36px; padding: 8px 12px; font-size: 12px;
+    background: #fff; border: 1px solid var(--pclaude-border);
+    border-left: 3px solid #006bb4; border-radius: 8px;
+    color: var(--pclaude-text); display: flex; align-items: center; gap: 8px;
+    animation: pclaudeBubbleIn .22s ease;
+}
+.pclaude-tool code { color: #006bb4; font-weight: 600; font-size: 12px; font-family: 'JetBrains Mono', Menlo, monospace; }
+.pclaude-tool span { color: var(--pclaude-muted); flex: 1; }
+.pclaude-tool.err { border-left-color: #d93b3b; }
+
+/* Status / typing */
+.pclaude-typing {
+    display: inline-flex; gap: 4px; align-items: center; padding: 4px 0;
+}
+.pclaude-typing span {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--pclaude-orange);
+    animation: pclaudeTyping 1.2s infinite;
+}
+.pclaude-typing span:nth-child(2) { animation-delay: .15s; }
+.pclaude-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes pclaudeTyping {
+    0%, 80%, 100% { opacity: .25; transform: translateY(0); }
+    40%           { opacity: 1;   transform: translateY(-3px); }
+}
+
+/* Attachment chips */
+.pclaude-attachments {
+    display: none; gap: 6px; padding: 8px 14px;
+    background: #fff; border-top: 1px solid var(--pclaude-border);
+    flex-wrap: wrap; flex-shrink: 0;
+}
+.pclaude-att {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 8px; background: #f7f6f3;
+    border: 1px solid var(--pclaude-border); border-radius: 12px;
+    font-size: 12px; max-width: 220px;
+}
+.pclaude-att img { width: 22px; height: 22px; object-fit: cover; border-radius: 4px; }
+.pclaude-att .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pclaude-att button {
+    background: none; border: none; color: var(--pclaude-muted); cursor: pointer;
+    font-size: 14px; padding: 0; line-height: 1;
+}
+.pclaude-att button:hover { color: #d93b3b; }
+
+/* ====================== Composer ====================== */
+.pclaude-composer {
+    padding: 10px 12px 12px; background: #fff;
+    border-top: 1px solid var(--pclaude-border); flex-shrink: 0;
+}
+.pclaude-composer-inner {
+    display: flex; align-items: flex-end; gap: 6px;
+    background: #f7f6f3; border: 1px solid var(--pclaude-border);
+    border-radius: 14px; padding: 6px 6px 6px 8px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.pclaude-composer-inner:focus-within {
+    border-color: var(--pclaude-orange);
+    box-shadow: 0 0 0 3px rgba(235,82,2,.12);
+}
+.pclaude-attach {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--pclaude-muted); cursor: pointer; transition: color .15s, background .15s;
+    flex-shrink: 0;
+    padding: 0; box-sizing: border-box; line-height: 1;
+}
+.pclaude-attach:hover { color: var(--pclaude-orange); background: rgba(235,82,2,.08); }
+.pclaude-input {
+    flex: 1; resize: none; min-height: 36px; max-height: 140px;
+    border: none; background: transparent;
+    padding: 8px 4px; font-size: 13.5px; font-family: inherit;
+    color: var(--pclaude-text); outline: none;
+}
+.pclaude-input::placeholder { color: #9a9a9a; }
+.pclaude-send {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #ff6b1a, #c4410f); color: #fff; border: none;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(235,82,2,.28);
+    transition: transform .15s, box-shadow .15s;
+    flex-shrink: 0;
+    padding: 0; box-sizing: border-box; line-height: 1;
+}
+.pclaude-send:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(235,82,2,.4); }
+.pclaude-send:active { transform: translateY(0); }
+.pclaude-send:disabled { background: #d4d4d4; cursor: not-allowed; box-shadow: none; transform: none; }
+.pclaude-send svg { width: 17px; height: 17px; display: block; transform: rotate(0deg); }
+.pclaude-attach svg { display: block; }
+.pclaude-stop svg { width: 12px; height: 12px; display: block; }
+
+.pclaude-stop {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #fff; border: 1px solid #d93b3b; color: #d93b3b;
+    cursor: pointer; display: none; align-items: center; justify-content: center;
+    transition: background .15s;
+    flex-shrink: 0;
+    padding: 0; box-sizing: border-box; line-height: 1;
+}
+.pclaude-stop.is-active { display: flex; }
+.pclaude-stop:hover { background: #fff5f5; }
+.pclaude-stop svg { width: 12px; height: 12px; }
+.pclaude-composer.is-busy .pclaude-send { display: none; }
+.pclaude-composer-foot {
+    text-align: center; font-size: 12px; color: #6b6b6b;
+    padding-top: 6px; letter-spacing: .02em;
+}
+
+.pclaude-launcher.is-compact {
+    width: 40px; height: 40px; border-radius: 12px; left: 16px; right: auto; bottom: 16px;
+    box-shadow: 0 4px 12px rgba(20,20,20,.24);
+}
+.pclaude-launcher.is-compact .pulse { display: none; }
+.pclaude-launcher.is-compact .pclaude-launcher-tip { left: 52px; right: auto; }
+.pclaude-launcher.is-compact svg { width: 18px; height: 18px; }
+.page-header-actions .pclaude-launcher.is-docked {
+    position: relative; float: right; bottom: auto; right: auto; z-index: auto;
+    width: 44px; height: 33px; margin: 0 6px 0 4px; border-radius: 2px;
+    background: transparent; color: #41362f; box-shadow: none;
+    border: 1px solid transparent;
+}
+.page-header-actions .pclaude-launcher.is-docked:hover,
+.page-header-actions .pclaude-launcher.is-docked.is-open {
+    transform: none; background: #ffffff; border-color: #e3e3e3; color: #eb5202; box-shadow: none;
+}
+.page-header-actions .pclaude-launcher.is-docked.is-open { border-radius: 2px; }
+.page-header-actions .pclaude-launcher.is-docked:focus-visible {
+    outline: none; box-shadow: 0 0 0 1px #007bdb; border-color: #007bdb;
+}
+.page-header-actions .pclaude-launcher.is-docked.is-docked-edge {
+    position: absolute; float: none; right: 100%; margin: 0 8px 0 0;
+}
+.page-header.pclaude-title-reserve .page-title-wrapper { padding-right: var(--pclaude-title-reserve, 0); }
+.page-header-actions .pclaude-launcher.is-docked .pulse { display: none; }
+.page-header-actions .pclaude-launcher.is-docked svg { width: 20px; height: 20px; }
+.page-header-actions .pclaude-launcher.is-docked .pclaude-launcher-tip {
+    right: 0; top: auto; bottom: -38px; transform: none; z-index: 901;
+}
+.page-header-actions .pclaude-launcher.is-docked:hover .pclaude-launcher-tip { transform: none; }
+.pclaude-widget.is-docked { top: 84px; bottom: auto; max-height: calc(100vh - 104px); }
+.pclaude-widget.is-compact { left: 16px; right: auto; bottom: 68px; }
+.pclaude-widget.is-docked .pclaude-resize { top: auto; bottom: 0; transform: scaleY(-1); }
+.pclaude-widget.is-compact .pclaude-resize { left: auto; right: 0; transform: scaleX(-1); }
+
+@media print { .pclaude-launcher, .pclaude-widget { display: none !important; } }
+</style>
+
+<button type="button"
+        class="pclaude-launcher"
+        id="pclaude-launcher"
+        title="<?= $escaper->escapeHtmlAttr(__('Ask Claude AI')) ?>"
+        aria-label="<?= $escaper->escapeHtmlAttr(__('Open Ask Claude chat')) ?>"
+        aria-expanded="false">
+    <span class="pulse"></span>
+    <span class="pclaude-launcher-tip"><?= $escaper->escapeHtml(__('Ask Claude - your store assistant')) ?></span>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+        <circle cx="9" cy="10" r="1" fill="currentColor"/>
+        <circle cx="13" cy="10" r="1" fill="currentColor"/>
+        <circle cx="17" cy="10" r="1" fill="currentColor"/>
+    </svg>
+</button>
+
+<div class="pclaude-widget" id="pclaude-widget" role="dialog" aria-label="<?= $escaper->escapeHtmlAttr(__('Ask Claude')) ?>">
+    <div class="pclaude-resize" id="pclaude-resize"
+         title="<?= $escaper->escapeHtmlAttr(__('Drag to resize')) ?>"></div>
+
+    <header class="pclaude-header">
+        <div class="pclaude-header-row">
+            <div class="pclaude-brand">
+                <div class="pclaude-mark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="pclaude-title"><?= $escaper->escapeHtml(__('Store Assistant')) ?></div>
+                    <div class="pclaude-subtitle">
+                        <span class="pclaude-status-dot"></span>
+                        <span><?= $escaper->escapeHtml($block->getModel()) ?></span>
+                        <?php if ($block->isDryRun()): ?>
+                            <span>· <?= $escaper->escapeHtml(__('Dry run')) ?></span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="pclaude-actions">
+                <button type="button" class="pclaude-icon-btn" id="pclaude-newchat"
+                        title="<?= $escaper->escapeHtmlAttr(__('Start new conversation')) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('New conversation')) ?>">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                </button>
+                <a href="<?= $escaper->escapeUrl($block->getFullChatUrl()) ?>" target="_blank"
+                   class="pclaude-icon-btn"
+                   title="<?= $escaper->escapeHtmlAttr(__('Open full page')) ?>"
+                   aria-label="<?= $escaper->escapeHtmlAttr(__('Open in full page')) ?>">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 3h6v6M14 10l7-7M9 21H3v-6M10 14l-7 7"/>
+                    </svg>
+                </a>
+                <button type="button" class="pclaude-icon-btn" id="pclaude-close"
+                        title="<?= $escaper->escapeHtmlAttr(__('Close')) ?>"
+                        aria-label="<?= $escaper->escapeHtmlAttr(__('Close chat')) ?>">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="pclaude-feed" id="pclaude-feed" role="log" aria-live="polite" aria-relevant="additions">
+        <div class="pclaude-empty">
+            <div class="pclaude-empty-mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/>
+                </svg>
+            </div>
+            <h3><?= $escaper->escapeHtml(__('How can I help today?')) ?></h3>
+            <p><?= $escaper->escapeHtml(__('I can search products, manage orders, update prices, edit CMS pages - anything in your store.')) ?></p>
+            <div class="pclaude-suggest">
+                <button type="button" class="pclaude-chip" data-prompt="<?= $escaper->escapeHtmlAttr(__('Show me the 10 most recent orders')) ?>">
+                    <?= $escaper->escapeHtml(__('Show me the 10 most recent orders')) ?>
+                </button>
+                <button type="button" class="pclaude-chip" data-prompt="<?= $escaper->escapeHtmlAttr(__('Find low-stock products under 5 units')) ?>">
+                    <?= $escaper->escapeHtml(__('Find low-stock products under 5 units')) ?>
+                </button>
+                <button type="button" class="pclaude-chip" data-prompt="<?= $escaper->escapeHtmlAttr(__('How many third-party modules are installed?')) ?>">
+                    <?= $escaper->escapeHtml(__('How many third-party modules are installed?')) ?>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="pclaude-attachments" id="pclaude-attachments"></div>
+
+    <form class="pclaude-composer" id="pclaude-form">
+        <div class="pclaude-composer-inner">
+            <label class="pclaude-attach" title="<?= $escaper->escapeHtmlAttr(__('Attach a file')) ?>">
+                <input type="file" id="pclaude-file"
+                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.json,.xml,.md,.log,.zip"
+                       hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                </svg>
+            </label>
+            <textarea id="pclaude-input" class="pclaude-input" rows="1"
+                      aria-label="<?= $escaper->escapeHtmlAttr(__('Message to the store assistant')) ?>"
+                      placeholder="<?= $escaper->escapeHtmlAttr(__('Ask anything about your store...')) ?>"></textarea>
+            <button type="button" class="pclaude-stop" id="pclaude-stop"
+                    title="<?= $escaper->escapeHtmlAttr(__('Stop')) ?>"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Stop generating')) ?>">
+                <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+            </button>
+            <button type="submit" class="pclaude-send" id="pclaude-send"
+                    aria-label="<?= $escaper->escapeHtmlAttr(__('Send message')) ?>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    'use strict';
+    const STREAM_URL = <?= json_encode($block->getStreamUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+    const UPLOAD_URL = <?= json_encode($block->getUploadUrl(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+    const FORM_KEY   = <?= json_encode($block->getFormKey(), JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+
+    const launcherBtn = document.getElementById('pclaude-launcher');
+    const widget      = document.getElementById('pclaude-widget');
+    const closeBtn    = document.getElementById('pclaude-close');
+    const newchatBtn  = document.getElementById('pclaude-newchat');
+    const resizeGrip  = document.getElementById('pclaude-resize');
+    const feed        = document.getElementById('pclaude-feed');
+    const input       = document.getElementById('pclaude-input');
+    const sendBtn     = document.getElementById('pclaude-send');
+    const stopBtn     = document.getElementById('pclaude-stop');
+    const form        = document.getElementById('pclaude-form');
+    const composer    = form;
+    const fileIn      = document.getElementById('pclaude-file');
+    const attBox      = document.getElementById('pclaude-attachments');
+
+    if (!launcherBtn || !widget) return;
+
+    const LAUNCHER_POSITION = '<?= $escaper->escapeJs($block->getLauncherPosition()) ?>';
+    let placement = 'compact';
+    if (LAUNCHER_POSITION === 'header') {
+        const headerActions = document.querySelector('.page-header-actions');
+        if (headerActions) {
+            const notifWrap = headerActions.querySelector(':scope > .notifications-wrapper');
+            const searchWrap = headerActions.querySelector(':scope > .search-global');
+            headerActions.insertBefore(launcherBtn, notifWrap || searchWrap);
+            const pageHeader = headerActions.closest('.page-header');
+            const titleWrap = pageHeader ? pageHeader.querySelector('.page-title-wrapper') : null;
+            const fitHeader = function () {
+                launcherBtn.classList.remove('is-docked-edge');
+                launcherBtn.style.top = '';
+                if (pageHeader) {
+                    pageHeader.classList.remove('pclaude-title-reserve');
+                    pageHeader.style.removeProperty('--pclaude-title-reserve');
+                }
+                const probe = searchWrap ? (searchWrap.querySelector('.search-global-label') || searchWrap) : notifWrap;
+                if (!probe) {
+                    return;
+                }
+                const lb = launcherBtn.getBoundingClientRect();
+                const pb = probe.getBoundingClientRect();
+                if (pb.height > 0 && lb.height > 0 && pb.top > lb.top + 8) {
+                    launcherBtn.classList.add('is-docked-edge');
+                    launcherBtn.style.top = (notifWrap ? notifWrap.offsetTop : 0) + 'px';
+                    if (titleWrap) {
+                        const eb = launcherBtn.getBoundingClientRect();
+                        const tb = titleWrap.getBoundingClientRect();
+                        const reserve = Math.ceil(tb.right - eb.left + 12);
+                        if (tb.width > 0 && reserve > 0) {
+                            pageHeader.style.setProperty('--pclaude-title-reserve', reserve + 'px');
+                            pageHeader.classList.add('pclaude-title-reserve');
+                        }
+                    }
+                }
+            };
+            fitHeader();
+            window.addEventListener('load', fitHeader);
+            window.addEventListener('resize', fitHeader);
+            placement = 'docked';
+        }
+    }
+    launcherBtn.classList.add('is-' + placement);
+    widget.classList.add('is-' + placement);
+
+    let conversation = [];
+    let conversationId = '';
+    let pendingAttachments = [];
+    let activeAbort = null;
+
+    function toggle(open) {
+        const willOpen = open !== undefined ? open : !widget.classList.contains('is-open');
+        widget.classList.toggle('is-open', willOpen);
+        launcherBtn.classList.toggle('is-open', willOpen);
+        launcherBtn.setAttribute('aria-expanded', String(willOpen));
+        if (willOpen) {
+            setTimeout(() => input?.focus(), 60);
+        } else if (widget.contains(document.activeElement)) {
+            launcherBtn.focus();
+        }
+    }
+    launcherBtn.addEventListener('click', () => toggle());
+    closeBtn?.addEventListener('click', () => toggle(false));
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && widget.classList.contains('is-open')) toggle(false);
+    });
+
+    function esc(s) {
+        return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function nearBottom() { return (feed.scrollHeight - feed.scrollTop - feed.clientHeight) < 60; }
+    let _stick = true;
+    feed.addEventListener('scroll', () => { _stick = nearBottom(); });
+    function scrollDown(force) {
+        if (force || _stick) feed.scrollTop = feed.scrollHeight;
+    }
+    function clearEmpty() { const e = feed.querySelector('.pclaude-empty'); if (e) e.remove(); }
+
+    // Stylized sparkle glyph - Claude/AI mark, not a generic "C".
+    const AI_GLYPH =
+        '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+        '<path d="M12 2.5l1.95 5.55L19.5 10l-5.55 1.95L12 17.5l-1.95-5.55L4.5 10l5.55-1.95L12 2.5z"/>' +
+        '<path d="M18.5 14.5l.85 2.4 2.4.85-2.4.85-.85 2.4-.85-2.4-2.4-.85 2.4-.85.85-2.4z" opacity=".75"/>' +
+        '</svg>';
+
+    // Walk back through preceding siblings - if the first non-tool row we
+    // hit is another AI row, this new bubble is a continuation of the same
+    // assistant turn and should hide its avatar.
+    function isContinuation() {
+        for (let n = feed.lastElementChild; n; n = n.previousElementSibling) {
+            if (n.classList.contains('pclaude-tool')) continue;
+            if (n.classList.contains('pclaude-row')) {
+                return n.classList.contains('ai');
+            }
+        }
+        return false;
+    }
+    function bubble(role, html) {
+        clearEmpty();
+        const row = document.createElement('div');
+        row.className = 'pclaude-row ' + role;
+        if (role === 'ai' && isContinuation()) row.classList.add('is-continuation');
+        let inner = '';
+        if (role === 'ai') {
+            inner += '<div class="pclaude-avatar">' + AI_GLYPH + '</div>';
+        }
+        inner += '<div class="pclaude-bubble">' + html + '</div>';
+        row.innerHTML = inner;
+        feed.appendChild(row);
+        scrollDown();
+        return row.querySelector('.pclaude-bubble');
+    }
+    function thinking() {
+        clearEmpty();
+        const row = document.createElement('div');
+        row.className = 'pclaude-row ai';
+        if (isContinuation()) row.classList.add('is-continuation');
+        row.innerHTML = '<div class="pclaude-avatar">' + AI_GLYPH + '</div>' +
+            '<div class="pclaude-bubble"><span class="pclaude-typing"><span></span><span></span><span></span></span></div>';
+        feed.appendChild(row);
+        scrollDown();
+        return row.querySelector('.pclaude-bubble');
+    }
+    function setStatus(el, text) {
+        if (!el) return;
+        el.innerHTML = '<span class="pclaude-typing"><span></span><span></span><span></span></span> ' +
+            '<span style="color:#707070;font-size:12.5px">' + esc(text) + '</span>';
+        scrollDown();
+    }
+    function toolChip(name, summary, status) {
+        const div = document.createElement('div');
+        div.className = 'pclaude-tool' + (status === 'error' ? ' err' : '');
+        div.innerHTML = '<code>' + esc(name) + '</code>' +
+            (summary ? '<span>' + esc(summary) + '</span>' : '');
+        feed.appendChild(div);
+        scrollDown();
+    }
+    function md(text) {
+        let s = esc(text);
+        s = s.replace(/```([\s\S]*?)```/g, (_, c) => '<pre>' + c + '</pre>');
+        s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+        s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+        s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+        s = s.replace(/\n/g, '<br>');
+        return s;
+    }
+    function renderAttachments() {
+        if (!pendingAttachments.length) {
+            attBox.style.display = 'none'; attBox.innerHTML = ''; return;
+        }
+        attBox.style.display = 'flex';
+        attBox.innerHTML = pendingAttachments.map((a, i) => {
+            const thumb = a.preview_url
+                ? '<img src="' + esc(a.preview_url) + '" alt="">'
+                : '<span>' + (a.is_pdf ? '📄' : a.is_text ? '📝' : '📎') + '</span>';
+            return '<div class="pclaude-att">' + thumb +
+                '<span class="name">' + esc(a.name) + '</span>' +
+                '<button type="button" data-rm="' + i + '">×</button></div>';
+        }).join('');
+        attBox.querySelectorAll('[data-rm]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                pendingAttachments.splice(parseInt(btn.dataset.rm, 10), 1);
+                renderAttachments();
+            });
+        });
+    }
+    async function uploadFile(file) {
+        if (file.size > 20 * 1024 * 1024) { bubble('err', 'File too large. Max 20 MB.'); return; }
+        const fd = new FormData();
+        fd.append('file', file); fd.append('form_key', FORM_KEY);
+        fd.append('conversation_id', conversationId);
+        try {
+            const resp = await fetch(UPLOAD_URL, { method: 'POST', credentials: 'include', body: fd });
+            const data = await resp.json();
+            if (!data.success) { bubble('err', esc(data.error || 'Upload failed.')); return; }
+            const att = {
+                id: data.id, name: data.name, mime: data.mime, size: data.size, url: data.url,
+                is_image: data.is_image, is_pdf: data.is_pdf, is_text: data.is_text,
+                claude_can_see: data.claude_can_see,
+            };
+            if (data.is_image && data.preview_url) {
+                att.preview_url = data.preview_url;
+            }
+            pendingAttachments.push(att);
+            renderAttachments();
+        } catch (e) {
+            bubble('err', 'Could not upload that file.');
+        }
+    }
+    async function send(message) {
+        const attHtml = pendingAttachments.map(a => a.preview_url
+            ? '<img class="attached" src="' + esc(a.preview_url) + '" alt="">'
+            : '<div style="margin-top:4px;font-size:11.5px;opacity:.85">📎 ' + esc(a.name) + '</div>'
+        ).join('');
+        bubble('user', esc(message) + attHtml);
+        _stick = true; scrollDown(true);
+        const sent = pendingAttachments.slice();
+        pendingAttachments = [];
+        renderAttachments();
+        input.value = ''; input.style.height = 'auto';
+        composer.classList.add('is-busy');
+        stopBtn.classList.add('is-active');
+
+        const apiAttachments = sent.map(a => ({ id: a.id }));
+        const t = thinking();
+        setStatus(t, 'Reading your message...');
+
+        const ctrl = new AbortController();
+        activeAbort = ctrl;
+        let done = null;
+        try {
+            const resp = await fetch(STREAM_URL, {
+                method: 'POST', credentials: 'include', signal: ctrl.signal,
+                // Don't send Accept: text/event-stream - Magento's webapi
+                // RendererFactory rejects it when the orchestrator's tools
+                // (e.g. manage_products) save through productRepository,
+                // because some Magento plugins read the live request's Accept
+                // header to pick a JSON/XML renderer. Default Accept is fine;
+                // SSE works because the SERVER's Content-Type is what matters.
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({
+                    message, attachments: apiAttachments,
+                    conversation_id: conversationId, form_key: FORM_KEY,
+                }),
+            });
+            if (!resp.ok || !resp.body) { t.remove(); bubble('err', '<strong>Error:</strong> HTTP ' + resp.status); return; }
+            const reader = resp.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = '';
+            const handle = (event, data) => {
+                if (event === 'thinking')        setStatus(t, data.message || 'Thinking...');
+                else if (event === 'tool_start') setStatus(t, 'Calling ' + (data.name || ''));
+                else if (event === 'tool_done') {
+                    const summary = (data.summary || '').slice(0, 110);
+                    t.parentElement.insertAdjacentElement('beforebegin', (() => {
+                        const d = document.createElement('div');
+                        d.className = 'pclaude-tool' + (data.status === 'error' ? ' err' : '');
+                        d.innerHTML = '<code>' + esc(data.name) + '</code><span>' + esc(summary) + '</span>';
+                        return d;
+                    })());
+                    setStatus(t, 'Got results - figuring out next step...');
+                }
+                else if (event === 'writing_reply') setStatus(t, 'Writing the reply...');
+                else if (event === 'done')          done = data;
+                else if (event === 'error') {
+                    t.remove();
+                    bubble('err', '<strong>Error:</strong> ' + esc(data.message || 'Unknown'));
+                }
+            };
+            while (true) {
+                const { value, done: sd } = await reader.read();
+                if (sd) break;
+                buffer += decoder.decode(value, { stream: true });
+                let idx;
+                while ((idx = buffer.indexOf('\n\n')) !== -1) {
+                    const chunk = buffer.slice(0, idx); buffer = buffer.slice(idx + 2);
+                    let evt = 'message', payload = '';
+                    for (const line of chunk.split('\n')) {
+                        if (line.startsWith('event:')) evt = line.slice(6).trim();
+                        else if (line.startsWith('data:')) payload += line.slice(5).trim();
+                    }
+                    if (payload) { try { handle(evt, JSON.parse(payload)); } catch {} }
+                }
+            }
+            if (!done) { t.remove(); return; }
+            t.remove();
+            conversationId = done.conversation_id || conversationId;
+            conversation = done.conversation || conversation;
+            const aiBubble = bubble('ai', md(done.text || '(no reply)'));
+            const u = done.usage || {};
+            const cost = done.cost_display || '';
+            const meta = (done.iterations ? 'iter ' + done.iterations : '') +
+                (u.input ? ' · in ' + u.input : '') +
+                (u.output ? ' · out ' + u.output : '') +
+                (cost ? ' · ' + cost : '');
+            if (meta && aiBubble) {
+                aiBubble.insertAdjacentHTML('beforeend', '<div class="meta">' + esc(meta) + '</div>');
+            }
+        } catch (e) {
+            t.remove();
+            if (e.name === 'AbortError') {
+                bubble('ai', '<em style="color:#b30000">Stopped.</em>');
+            } else {
+                bubble('err', '<strong>Network error:</strong> ' + esc(e.message));
+            }
+        } finally {
+            activeAbort = null;
+            composer.classList.remove('is-busy');
+            stopBtn.classList.remove('is-active');
+            input.focus();
+        }
+    }
+    stopBtn?.addEventListener('click', () => {
+        if (activeAbort) { activeAbort.abort(); }
+    });
+    newchatBtn?.addEventListener('click', () => {
+        if (activeAbort) activeAbort.abort();
+        conversation = []; conversationId = '';
+        pendingAttachments = []; renderAttachments();
+        feed.innerHTML = '<div class="pclaude-empty">' +
+            '<div class="pclaude-empty-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>' +
+            '<h3>How can I help today?</h3>' +
+            '<p>Fresh chat - your previous one is saved under Conversations.</p></div>';
+        input.focus();
+    });
+
+    input?.addEventListener('input', () => {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+    });
+    function shouldSend() { return input.value.trim() !== '' || pendingAttachments.length > 0; }
+    input?.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (shouldSend()) send(input.value.trim());
+        }
+    });
+    form?.addEventListener('submit', e => {
+        e.preventDefault();
+        if (shouldSend()) send(input.value.trim());
+    });
+    fileIn?.addEventListener('change', e => {
+        const f = e.target.files && e.target.files[0];
+        if (f) uploadFile(f);
+        e.target.value = '';
+    });
+    document.querySelectorAll('.pclaude-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const p = chip.dataset.prompt || '';
+            input.value = p; input.dispatchEvent(new Event('input'));
+            send(p);
+        });
+    });
+
+    // ---------- Resize ----------
+    const SIZE_KEY = 'pclaude_size_v2';
+    function applySaved() {
+        try {
+            const raw = localStorage.getItem(SIZE_KEY);
+            if (!raw) return;
+            const s = JSON.parse(raw);
+            if (s && Number.isFinite(s.w) && Number.isFinite(s.h)) {
+                widget.style.width  = Math.max(320, s.w) + 'px';
+                widget.style.height = Math.max(380, s.h) + 'px';
+            }
+        } catch {}
+    }
+    function saveSize(w, h) { try { localStorage.setItem(SIZE_KEY, JSON.stringify({ w, h })); } catch {} }
+    applySaved();
+
+    let rs = null;
+    resizeGrip?.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        const r = widget.getBoundingClientRect();
+        if (placement === 'docked') {
+            widget.style.top   = r.top + 'px';
+            widget.style.right = (window.innerWidth - r.right) + 'px';
+        } else {
+            widget.style.bottom = (window.innerHeight - r.bottom) + 'px';
+            widget.style.left   = r.left + 'px';
+        }
+        rs = { startX: e.clientX, startY: e.clientY, ar: r.right, ab: r.bottom, al: r.left, at: r.top };
+        document.body.classList.add('pclaude-resizing');
+        resizeGrip.setPointerCapture(e.pointerId);
+    });
+    resizeGrip?.addEventListener('pointermove', (e) => {
+        if (!rs) return;
+        const dw = placement === 'docked' ? rs.ar - e.clientX : e.clientX - rs.al;
+        const dh = placement === 'docked' ? e.clientY - rs.at : rs.ab - e.clientY;
+        const w = Math.max(320, Math.min(window.innerWidth  - 24, dw));
+        const h = Math.max(380, Math.min(window.innerHeight - 24, dh));
+        widget.style.width  = w + 'px';
+        widget.style.height = h + 'px';
+    });
+    function endResize(e) {
+        if (!rs) return;
+        const r = widget.getBoundingClientRect();
+        saveSize(r.width, r.height); rs = null;
+        document.body.classList.remove('pclaude-resizing');
+        try { resizeGrip.releasePointerCapture(e.pointerId); } catch {}
+    }
+    resizeGrip?.addEventListener('pointerup',     endResize);
+    resizeGrip?.addEventListener('pointercancel', endResize);
+})();
+</script>

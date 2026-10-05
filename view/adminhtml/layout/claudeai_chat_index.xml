@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Panth_ClaudeAi::css/dashboard.css"/>
+    </head>
+    <body>
+        <referenceContainer name="content">
+            <block class="Panth\ClaudeAi\Block\Adminhtml\Chat"
+                   name="claudeai.chat"
+                   template="Panth_ClaudeAi::chat.phtml"/>
+            <block class="Panth\ClaudeAi\Block\Adminhtml\Credit"
+                   name="claudeai.credit"
+                   template="Panth_ClaudeAi::credit.phtml"/>
+        </referenceContainer>
+    </body>
+</page>
