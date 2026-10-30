@@ -332,7 +332,7 @@ Changes the assistant made to products, categories, CMS content, orders and conf
 
 ## License
 
-MIT, as declared in `composer.json`. The package is published on Packagist and can be installed with Composer; see the product page for the terms of use.
+Free and open source under the MIT License. See [LICENSE.txt](LICENSE.txt).
 
 ## Changelog
 
